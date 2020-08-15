@@ -1,0 +1,31 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/app.js",
+  "author": "",
+  "license": "ISC",
+  "private": true,
+  "scripts": {
+    "start": "nodemon --ext js --watch src"
+  },
+  "devDependencies": {
+    "nodemon": "^1.14.10"
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "bcrypt": "^5.0.0",
+    "bluebird": "^3.7.2",
+    "body-parser": "^1.19.0",
+    "bootstrap": "^4.4.1",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "express-flash": "0.0.2",
+    "express-session": "^1.17.1",
+    "mysql": "^2.18.1",
+    "mysql-utilities": "^1.1.0-alpha.4",
+    "passport": "^0.4.1",
+    "passport-local": "^1.0.0",
+    "popper.js": "^1.16.1"
+  }
+}
