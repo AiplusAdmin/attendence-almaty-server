@@ -1,25 +1,24 @@
+require('./config/passport-config');
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const flash = require('express-flash');
 const session = require('express-session');
 const passport = require('passport');
+const jwt = require('jsonwebtoken');
 
-var services = require('./routes/services');
-var cors = require('cors');
+const services = require('./routes/services');
+const cors = require('cors');
 
-var port = 3000;
+const port = 3000;
 
-var app = express();
+const app = express();
 app.use(cors());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(flash());
-app.use(session({
-    secret: 'keyboard cat',
-    resave: false,
-    saveUninitialized: false
-}));
+
 app.use(passport.initialize());
 app.use(passport.session());
 

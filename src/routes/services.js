@@ -1,13 +1,17 @@
-var express = require('express');
-var router = express.Router();
-var handlers = require('../api/handlers');
-var api = require('../api/api');
-var query = require('../database/query');
-var Queue = require('./queue');
-var passport = require('passport');
-var initializePassport = require('../config/passport-config');
+const express = require('express');
+const router = express.Router();
+const handlers = require('../api/handlers');
+const api = require('../api/api');
+const query = require('../database/query');
+const Queue = require('./queue');
+const bcrypt = require('bcrypt');
+const passport = require('passport');
+const generateKey = require('../config/generateKeys');
+const jwt = require('jsonwebtoken');
+const verifyToken = require('./verifyToken');
 
-var key = {
+
+const key = {
     "domain":"aiplus",
     "apikey":"VdqvXSXu%2Fq1DWiLefLBUihGMn7MHlvSP59HIHoHH7%2BLEtHB5dtznB6sqyJIPjH5w"
 };
@@ -34,7 +38,7 @@ function Weekday(date){
 }
 
 //Get Offices
-router.get('/offices', (req, res) => {
+router.get('/offices',verifyToken, (req, res) => {
     api.get(this.key.domain,'GetOffices','',this.key.apikey)
         .then((data) => {
             res.json(data);
@@ -45,7 +49,7 @@ router.get('/offices', (req, res) => {
 });
 
 //Get Teachers
-router.post('/teachers', (req, res) => {
+router.post('/teachers',verifyToken,(req, res) => {
     var params = 'id='+req.body.teacherId;
     api.get(key.domain,'GetTeachers',params,key.apikey)
         .then((data) => {
@@ -57,20 +61,28 @@ router.post('/teachers', (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-	var result = await query.GetTeacherByEmail(req.body.email);
-	if(result){
-		if(result.password == req.body.password){
-			res.send({status: true, message: '', teacherId: result.teacherId});
-		} else {
-			res.send({status: false, message: 'Пароль не правильный'});
-		}
-	} else {
-		res.send({status: false, message: 'Такой учетной записи нет'});
-	}
+	var remember = req.body.remember;
+	passport.authenticate('local',(err,user,info) => {
+		if(err)
+			res.send({status: 400,err});
+		else if(user){
+			var exipersIn = '';
+			if (remember)
+				exipersIn = "30 days";
+			else 
+				exipersIn = "2h";
+			const token = jwt.sign({_id: user.teacherId}, user.authkey,{expiresIn: exipersIn});
+			
+			res.set('ACCESSTOKEN',token);
+			res.set('AUTHTOKEN',user.authkey);
+			res.send({status: 200, teacherId: user.teacherId,authtoken: user.authkey, accesstoken: token});
+		} else
+			res.send({status: 404, message: info.message});
+	})(req,res);
 })
 
 //Get Groups
-router.post('/groups', (req, res) => {
+router.post('/groups',verifyToken, (req, res) => {
     var params = 'types=Group&timeFrom='+req.body.params.timeFrom+'&timeTo='+req.body.params.timeTo+'&statuses=Working&officeOrCompanyId='+req.body.params.officeId+'&teacherId='+req.body.teacherId;
     var date = Weekday(req.body.params.date);
     api.get(key.domain,'GetEdUnits',params,key.apikey)
@@ -109,7 +121,7 @@ router.post('/groups', (req, res) => {
 });
 
 //Get Student in Group
-router.post('/groupstudents', (req, res) => {
+router.post('/groupstudents',verifyToken, (req, res) => {
     var params = 'edUnitId=' + req.body.groupId;
     api.get(key.domain,'GetEdUnitStudents',params,key.apikey)
         .then((data) => {
@@ -132,7 +144,7 @@ router.post('/groupstudents', (req, res) => {
 });
 
 //Get Student
-router.get('/student', (req,res) => {
+router.get('/student',verifyToken, (req,res) => {
     var params = 'term='+encodeURIComponent(req.query.value);
     api.get(key.domain,'GetStudents',params,key.apikey)
         .then((data) => {
@@ -144,7 +156,7 @@ router.get('/student', (req,res) => {
 });
 
 //Add student passes
-router.post('/setpasses', (req, res) => {
+router.post('/setpasses',verifyToken, (req, res) => {
     var data = req.body.date;
     var groupId = req.body.groupId;
     var students = req.body.students;
@@ -170,7 +182,7 @@ router.post('/setpasses', (req, res) => {
 });
 
 //add attendence test
-router.post('/setattendence', (req, res) => {
+router.post('/setattendence',verifyToken, (req, res) => {
     var date = req.body.date;
     var groupId = req.body.groupId;
     var students = req.body.students;
@@ -181,22 +193,22 @@ router.post('/setattendence', (req, res) => {
             data.edUnitId = groupId;
             data.studentClientId = student.clientid;
             data.date = date;
-            data.testTypeId = 290;
+            data.testTypeId = 339;
             var skills = new Array();
             var skill = new Object();
-            skill.skillId = 29;
+            skill.skillId = 29; // Оценка учителя
             skill.score = student.homework;
             skills.push(skill);
             skill = new Object();
-            skill.skillId = 33;
+            skill.skillId = 33; // Срез
             skill.score = student.test;
             skills.push(skill);
             skill = new Object();
-            skill.skillId = 34;
-            skill.score = student.point;
+            skill.skillId = 34; // Ранг
+            skill.score = student.lesson;
             skills.push(skill);
             skill = new Object();
-            skill.skillId = 39;
+            skill.skillId = 39; // Комментарий
             skill.score = 30;
             skills.push(skill);
             data.skills = skills;
@@ -206,24 +218,24 @@ router.post('/setattendence', (req, res) => {
     });
 });
 
-router.post('/addtogroup', (req, res) => {
+router.post('/addtogroup',verifyToken, (req, res) => {
 	var params = new Object();
-	console.log(req);
-    params.edUnitId = req.body.group.Id;
+	params.edUnitId = req.body.group.Id;
     params.studentClientId = req.body.clientId;
     params.begin = req.body.group.date;
     params.weekdays = req.body.group.weekdays;
     params.status = 'Normal';
     api.post(key,'AddEdUnitStudent',params)
     .then((status) => {
-        res.sendStatus(status);
+		if(status.status == 200 && status.statusText == 'OK')
+			res.send({status: 200, message: 'OK'});
     })
     .catch(err =>{
-        res.send("error: " + err);
+        res.send({status: 500, error:  err});
     });
 });
 
-router.post('/addregister',(req,res) => {
+router.post('/addregister',verifyToken,(req,res) => {
     var register = new Object();
     register.teacherId = req.body.params.teacherId;
     register.groupId = req.body.params.group.id;
@@ -240,7 +252,7 @@ router.post('/addregister',(req,res) => {
     query.AddRegister(register,students);
 });
 
-router.post('/addstudentexample', (req, res) => {
+router.post('/addstudentexample',verifyToken, (req, res) => {
     var params = "statuses="+encodeURIComponent('АДАПТАЦИОННЫЙ ПЕРИОД,Занимается,Заморозка,Регистрация');
    api.get('aiplus','GetStudents',params,'VdqvXSXu%2Fq1DWiLefLBUihGMn7MHlvSP59HIHoHH7%2BLEtHB5dtznB6sqyJIPjH5w')
    .then((data) => {
@@ -270,22 +282,28 @@ router.post('/addstudentexample', (req, res) => {
 router.post('/addteacherexample', (req, res) => {
    api.get('aiplus','GetTeachers','','VdqvXSXu%2Fq1DWiLefLBUihGMn7MHlvSP59HIHoHH7%2BLEtHB5dtznB6sqyJIPjH5w')
    .then((data) => {
-        data.map(function(record){
-            if(record.Status == 'Работает'){
-            var tch = new Object();
-            tch.teacherId = record.Id;
-            tch.fullName = record.LastName + ' ' + record.FirstName;
-            tch.subject = 'не известно';
-            tch.email = record.EMail != undefined ? record.EMail : '';
-            tch.password = '123456';
-            query.AddTeacher(tch);
-            }
+        data.map(async function(record){
+				try{
+					if(record.Status == 'Работает'){
+						var tch = new Object();
+						tch.teacherId = record.Id;
+						tch.fullName = record.LastName + ' ' + record.FirstName;
+						tch.subject = 'не известно';
+						tch.email = record.EMail != undefined ? record.EMail : '';
+						tch.password = await bcrypt.hash('123456',10);
+						tch.authkey = generateKey();
+						var teacherId = query.AddTeacher(tch);
+						console.log(teacherId);
+					}
+				} catch(err){
+					console.log(err);
+				}
         });
         res.send("ok");
     });
 });
 
-router.post('/registeramount', (req,res) => {
+router.post('/registeramount',verifyToken, (req,res) => {
     query.GetRegisterAmount(req.body.teacherId, req.body.groupId,req.body.lessonDate)
     .then((col) => {
         if(col == 0){
@@ -300,7 +318,7 @@ router.post('/registeramount', (req,res) => {
 });
 
 
-router.get('/searchteacher', (req, res) => {
+router.get('/searchteacher',verifyToken, (req, res) => {
     query.SearchTeacher(req.query.value)
     .then((results) => {
         res.send(results);
@@ -310,7 +328,7 @@ router.get('/searchteacher', (req, res) => {
     });
 });
 
-router.get('/teacher/:teacherId', (req, res) => {
+router.get('/teacher/:teacherId',verifyToken, (req, res) => {
     query.GetTeacherByTeacherId(req.params.teacherId)
     .then((results) => {
         res.send(results);
@@ -320,7 +338,7 @@ router.get('/teacher/:teacherId', (req, res) => {
     });
 });
 
-router.get('/getregister', (req, res) => {
+router.get('/getregister',verifyToken, (req, res) => {
     query.GetRegister(req.query.teacherId)
     .then((results) => {
         res.send(results);
@@ -330,7 +348,7 @@ router.get('/getregister', (req, res) => {
     });
 });
 
-router.get('/getregisterdetails', (req, res) => {
+router.get('/getregisterdetails',verifyToken, (req, res) => {
     query.GetRegisterDetails(req.query.registerId)
     .then((results) => {
         res.send(results);

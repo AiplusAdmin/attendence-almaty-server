@@ -1,5 +1,6 @@
 const connection = require('./connection');
 const Promise = require('bluebird');
+const bcrypt = require('bcrypt');
 
 function AddStudent(student){
     connection.insert('student',{
@@ -19,10 +20,14 @@ function AddTeacher(teacher){
         fullName: teacher.fullName,
         subject: teacher.subject,
         email: teacher.email,
-        password: teacher.password
+		password: teacher.password,
+		authkey: teacher.authkey
     },function(err,id){
-        console.log(id);
-    });
+		if(err)
+			console.log(err);
+		else
+			return id;
+	});
 }
 
 function AddRegister(register,students){
@@ -149,7 +154,7 @@ function GetTeacher(email, password){
 
 function GetTeacherByEmail(email){
     return new Promise((resolve, reject) => {
-        connection.queryRow('SELECT teacherId,password FROM teacher WHERE email=?',[email],function(err, results){
+        connection.queryRow('SELECT teacherId,password,authkey FROM teacher WHERE email=?',[email],function(err, results){
             if(err){
                 console.log('Error',err);
                 reject(err);
@@ -158,6 +163,11 @@ function GetTeacherByEmail(email){
             }
         });
     });
+}
+
+async function verifyPassword(password,userPassword){
+	
+	return await bcrypt.compare(password,userPassword);
 }
 
 module.exports = {
@@ -170,5 +180,6 @@ module.exports = {
     GetRegisterDetails,
     GetTeacher,
 	GetTeacherByEmail,
-	GetTeacherByTeacherId
+	GetTeacherByTeacherId,
+	verifyPassword
 }
