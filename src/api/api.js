@@ -20,7 +20,7 @@ function  get(domain,method,params,api){
 }
 
 function post(key,method,params){
-    var url = 'https://'+key.domain+'.t8s.ru//Api/V2/'+method+'?authkey='+key.apikey;
+	var url = 'https://'+key.domain+'.t8s.ru//Api/V2/'+method+'?authkey='+key.apikey;
     return new Promise((resolve, reject) => {
         axios({
             method: 'post',
@@ -33,12 +33,12 @@ function post(key,method,params){
         })
         .catch(error => {
             console.log(error);
-            reject(error.response.data);
+            reject(error);
         })
     });
 }
 
 module.exports = {
     get,
-    post
+	post
 }

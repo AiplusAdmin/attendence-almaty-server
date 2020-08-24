@@ -57,7 +57,6 @@ function AddRegister(register,students){
                         homework: student.attendence?student.homework:-1,
                         test: student.attendence?student.test:-1,
                         lesson: student.attendence?student.lesson:-1,
-                        point: student.attendence?student.point:-1,
                         comment: student.attendence?student.comment:-1,
                         status: student.status
                     }, function(err,value){

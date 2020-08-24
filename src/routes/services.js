@@ -186,36 +186,41 @@ router.post('/setattendence',verifyToken, (req, res) => {
     var date = req.body.date;
     var groupId = req.body.groupId;
     var students = req.body.students;
-    var queue = new Queue();
-    students.map(function(student){
-        if(student.attendence && student.clientId != -1){
-            var data = new Object();
-            data.edUnitId = groupId;
-            data.studentClientId = student.clientid;
-            data.date = date;
-            data.testTypeId = 339;
-            var skills = new Array();
-            var skill = new Object();
-            skill.skillId = 29; // Оценка учителя
-            skill.score = student.homework;
-            skills.push(skill);
-            skill = new Object();
-            skill.skillId = 33; // Срез
-            skill.score = student.test;
-            skills.push(skill);
-            skill = new Object();
-            skill.skillId = 34; // Ранг
-            skill.score = student.lesson;
-            skills.push(skill);
-            skill = new Object();
-            skill.skillId = 39; // Комментарий
-            skill.score = 30;
-            skills.push(skill);
-            data.skills = skills;
-            data.commentHtml = student.comment;
-            queue.add(data);
-        }
-    });
+	var queue = new Queue();
+	try{
+		students.map(function(student){
+			if(student.attendence && student.clientId != -1){
+				var data = new Object();
+				data.edUnitId = groupId;
+				data.studentClientId = student.clientid;
+				data.date = date;
+				data.testTypeId = 339;
+				var skills = new Array();
+				var skill = new Object();
+				skill.skillId = 29; // Оценка учителя
+				skill.score = student.homework;
+				skills.push(skill);
+				skill = new Object();
+				skill.skillId = 33; // Срез
+				skill.score = student.test;
+				skills.push(skill);
+				skill = new Object();
+				skill.skillId = 34; // Ранг
+				skill.score = student.lesson;
+				skills.push(skill);
+				skill = new Object();
+				skill.skillId = 39; // Комментарий
+				skill.score = 30;
+				skills.push(skill);
+				data.skills = skills;
+				data.commentHtml = student.comment;
+				queue.add(data);
+			}
+		});
+		res.send({status: true});
+	}catch{
+		res.send({status: false});
+	}
 });
 
 router.post('/addtogroup',verifyToken, (req, res) => {
@@ -237,25 +242,25 @@ router.post('/addtogroup',verifyToken, (req, res) => {
 
 router.post('/addregister',verifyToken,(req,res) => {
     var register = new Object();
-    register.teacherId = req.body.params.teacherId;
-    register.groupId = req.body.params.group.id;
-    register.groupName = req.body.params.group.name;
-    register.time = req.body.params.group.time;
-    register.lessonDate = req.body.params.lessonDate;
-    register.weekDays = req.body.params.group.days;
-    register.submitDay = req.body.params.submitDay;
-    register.submitTime = req.body.params.submitTime;
-    register.isSubmitted = req.body.params.isSubmitted;
-    register.isStudentAdd = req.body.params.isStudentAdd;
-    register.isOperator = req.body.params.isOperator;
-    var students = req.body.params.students;
+    register.teacherId = req.body.teacherId;
+    register.groupId = req.body.group.Id;
+    register.groupName = req.body.group.name;
+    register.time = req.body.group.time;
+    register.lessonDate = req.body.group.date;
+    register.weekDays = req.body.group.days;
+    register.submitDay = req.body.submitDay;
+    register.submitTime = req.body.submitTime;
+    register.isSubmitted = req.body.isSubmitted;
+    register.isStudentAdd = req.body.group.isStudentAdd ? req.body.group.isStudentAdd:false;
+    register.isOperator = req.body.group.isOperator ? req.body.group.isOperator:false;
+    var students = req.body.students;
     query.AddRegister(register,students);
 });
 
 router.post('/addstudentexample',verifyToken, (req, res) => {
-    var params = "statuses="+encodeURIComponent('АДАПТАЦИОННЫЙ ПЕРИОД,Занимается,Заморозка,Регистрация');
-   api.get('aiplus','GetStudents',params,'VdqvXSXu%2Fq1DWiLefLBUihGMn7MHlvSP59HIHoHH7%2BLEtHB5dtznB6sqyJIPjH5w')
-   .then((data) => {
+	var params = "statuses="+encodeURIComponent('АДАПТАЦИОННЫЙ ПЕРИОД,Занимается,Заморозка,Регистрация');
+	api.get('aiplus','GetStudents',params,'VdqvXSXu%2Fq1DWiLefLBUihGMn7MHlvSP59HIHoHH7%2BLEtHB5dtznB6sqyJIPjH5w')
+	.then((data) => {
         data.map(function(record){
             var st = new Object();
             st.studentId = record.Id;
@@ -276,6 +281,20 @@ router.post('/addstudentexample',verifyToken, (req, res) => {
             query.AddStudent(st);
         });
         res.send("ok");
+    });
+});
+
+router.post('/sendpersonalmessage',(req,res) => {
+	console.log(req.body);
+	var params = new Object();
+	params.collocutorId = req.body.collocutorId;
+	params.text = req.body.text;
+	api.post(key,'AddPersonalMessage',params)
+	.then((data) => {
+		res.send(data);
+	})
+	.catch(err =>{
+        res.send({status: 500, error:  err});
     });
 });
 
@@ -339,7 +358,7 @@ router.get('/teacher/:teacherId',verifyToken, (req, res) => {
 });
 
 router.get('/getregister',verifyToken, (req, res) => {
-    query.GetRegister(req.query.teacherId)
+    query.GetRegister(req.params.teacherId)
     .then((results) => {
         res.send(results);
     })
@@ -349,7 +368,7 @@ router.get('/getregister',verifyToken, (req, res) => {
 });
 
 router.get('/getregisterdetails',verifyToken, (req, res) => {
-    query.GetRegisterDetails(req.query.registerId)
+    query.GetRegisterDetails(req.params.registerId)
     .then((results) => {
         res.send(results);
     })
@@ -357,5 +376,6 @@ router.get('/getregisterdetails',verifyToken, (req, res) => {
         res.send("error: " + err);
     });
 });
+
 
 module.exports = router;
