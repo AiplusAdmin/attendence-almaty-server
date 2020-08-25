@@ -194,7 +194,7 @@ router.post('/setpasses', verifyToken, function (req, res) {
       params.push(st);
     }
   });
-  api.post(key, 'SetStudentPasses', params).then(function (response) {
+  api.post(key.domain, 'SetStudentPasses', params, key.apikey).then(function (response) {
     res.send({
       status: response.status,
       statusText: response.statusText
@@ -260,7 +260,7 @@ router.post('/addtogroup', verifyToken, function (req, res) {
   params.begin = req.body.group.date;
   params.weekdays = req.body.group.weekdays;
   params.status = 'Normal';
-  api.post(key, 'AddEdUnitStudent', params).then(function (status) {
+  api.post(key.domain, 'AddEdUnitStudent', params, key.apikey).then(function (status) {
     if (status.status == 200 && status.statusText == 'OK') res.send({
       status: 200,
       message: 'OK'
@@ -320,7 +320,7 @@ router.post('/getauthkey', function (req, res) {
   var params = new Object();
   params.login = "0.sd.amocrm@gmail.com";
   params.password = "n6J}P,hx4QX{28kg";
-  api.post(key, 'GetMemberAuthKey', params).then(function (data) {
+  api.post(key.domain, 'GetMemberAuthKey', params, key.apikey).then(function (data) {
     console.log(data);
     res.send(data.data);
   })["catch"](function (err) {
