@@ -72,9 +72,9 @@ function AddRegister(register,students){
     });
 }
 
-function GetRegisterAmount(teacherId,groupId,lessonDate){
+function GetRegisterAmount(groupId,lessonDate){
     return new Promise((resolve,reject) => {
-        connection.queryValue("SELECT count(*) FROM register WHERE teacherId = ? AND groupId = ? AND lessonDate=?",[teacherId,groupId,lessonDate],
+        connection.queryValue("SELECT count(*) FROM register WHERE groupId = ? AND lessonDate LIKE ?",[groupId,lessonDate],
         function(err,amount){
                 if(err){
                     console.log ('Error: ',err);
@@ -86,9 +86,9 @@ function GetRegisterAmount(teacherId,groupId,lessonDate){
     });
 }
 
-function GetRegister(teacherId){
+function GetRegister(teacherId,date){
     return new Promise((resolve,reject) => {
-        connection.select('register','*',{teacherId: teacherId}, function(err, results){
+        connection.select('register','*',{teacherId: teacherId,lessonDate: date}, function(err, results){
             if(err){
                 console.log('Error',err);
                 reject(err);

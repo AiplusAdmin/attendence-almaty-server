@@ -316,12 +316,47 @@ router.post('/addstudentexample', verifyToken, function (req, res) {
     res.send("ok");
   });
 });
-router.post('/sendpersonalmessage', function (req, res) {
-  console.log(req.body);
+router.post('/getauthkey', function (req, res) {
   var params = new Object();
-  params.collocutorId = req.body.collocutorId;
-  params.text = req.body.text;
-  api.post(key, 'AddPersonalMessage', params).then(function (data) {
+  params.login = "0.sd.amocrm@gmail.com";
+  params.password = "n6J}P,hx4QX{28kg";
+  api.post(key, 'GetMemberAuthKey', params).then(function (data) {
+    console.log(data);
+    res.send(data.data);
+  })["catch"](function (err) {
+    res.send({
+      status: 500,
+      error: err
+    });
+  });
+});
+router.post('/sendpersonalmessage', function (req, res) {
+  var text = '';
+
+  if (req.body.group.change) {
+    text += 'Была замена : \n Заменяющий преподаватель: ' + req.body.teacherName + '\nЗаменяемый преподаватель: ' + req.body.group.teacher + '\n Дата замены: ' + req.body.group.date + '\nгруппа: Id: ' + req.body.group.Id + '\nГруппа: ' + req.body.group.name + '\nПреподаватель: ' + req.body.group.teacher + '\nВремя: ' + req.body.group.time + '\nДни: ' + req.body.group.days + '\n\n\n';
+  }
+
+  if (req.body.group.isOperator) {
+    req.body.students.map(function (student) {
+      if (student.status && student.clientid == -1) {
+        text += 'Найти и добавить ученика в группу\n Ученик: ' + student.name + ' в группу: Id: ' + req.body.group.Id + '\nГруппа: ' + req.body.group.name + '\nПреподаватель: ' + req.body.group.teacher + '\nВремя: ' + req.body.group.time + '\nДни: ' + req.body.group.days + '\n\n';
+        text += 'Аттендансе студента :\nФИО : ' + student.name + '\nД/з: ' + student.homework + '\nСрез: ' + student.test + '\nРанг: ' + student.lesson + '\nКомментарии: ' + student.comment + '\n\n\n';
+      }
+
+      if (student.status && student.clientid != -1) {
+        text += 'Добавить Ученика: ' + student.name + ' в группу: Id: ' + req.body.group.Id + '\nГруппа: ' + req.body.group.name + '\nПреподаватель: ' + req.body.group.teacher + '\nВремя: ' + req.body.group.time + '\nДни: ' + req.body.group.days + '\n\n';
+        text += 'Аттендансе студента :\nФИО : ' + student.name + '\nД/з: ' + student.homework + '\nСрез: ' + student.test + '\nРанг: ' + student.lesson + '\nКомментарии: ' + student.comment + '\n\n\n';
+      }
+    });
+  }
+
+  var params = new Object(); //params.authkey = 'VdqvXSXu/q1DWiLefLBUiugWL5fYnx5b394FJv4TGTPagu2dyu00brliDcg6C6/Z';
+
+  params.collocutorId = 11358;
+  params.text = text;
+  api.post('aiplus', 'AddPersonalMessage', params, 'VdqvXSXu/q1DWiLefLBUiugWL5fYnx5b394FJv4TGTPagu2dyu00brliDcg6C6/Z').then(function (data) {
+    console.log(data.data);
     res.send(data);
   })["catch"](function (err) {
     res.send({
@@ -379,7 +414,7 @@ router.post('/addteacherexample', function (req, res) {
   });
 });
 router.post('/registeramount', verifyToken, function (req, res) {
-  query.GetRegisterAmount(req.body.teacherId, req.body.groupId, req.body.lessonDate).then(function (col) {
+  query.GetRegisterAmount(req.body.groupId, req.body.lessonDate).then(function (col) {
     if (col == 0) {
       res.send(true);
     } else {
@@ -404,7 +439,7 @@ router.get('/teacher/:teacherId', verifyToken, function (req, res) {
   });
 });
 router.get('/getregister', verifyToken, function (req, res) {
-  query.GetRegister(req.params.teacherId).then(function (results) {
+  query.GetRegister(req.query.teacherId, req.query.date + '*').then(function (results) {
     res.send(results);
   })["catch"](function (err) {
     res.send("error: " + err);

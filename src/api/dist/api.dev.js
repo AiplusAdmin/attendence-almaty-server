@@ -20,8 +20,8 @@ function get(domain, method, params, api) {
   });
 }
 
-function post(key, method, params) {
-  var url = 'https://' + key.domain + '.t8s.ru//Api/V2/' + method + '?authkey=' + key.apikey;
+function post(domain, method, params, api) {
+  var url = 'https://' + domain + '.t8s.ru//Api/V2/' + method + '?authkey=' + api;
   return new Promise(function (resolve, reject) {
     axios({
       method: 'post',
