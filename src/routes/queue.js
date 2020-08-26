@@ -20,7 +20,7 @@ class Queue{
 				var key = new Object();
 				key.apikey = 'VdqvXSXu%2Fq1DWiLefLBUihGMn7MHlvSP59HIHoHH7%2BLEtHB5dtznB6sqyJIPjH5w';
 				key.domain = 'aiplus'; 
-				var response = await api.post(key,'AddEditEdUnitTestResult',this.data.shift())
+				var response = await api.post(key.domain,'AddEditEdUnitTestResult',this.data.shift(),key.apikey);
 				if(response.status == 200 && response.statusText === 'OK'){
 					if(this.data.length)
 						this.handle();

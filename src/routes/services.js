@@ -401,7 +401,8 @@ router.get('/getregister',verifyToken, (req, res) => {
 });
 
 router.get('/getregisterdetails',verifyToken, (req, res) => {
-    query.GetRegisterDetails(req.params.registerId)
+	console.log(req.query.registerId);
+    query.GetRegisterDetails(req.query.registerId)
     .then((results) => {
         res.send(results);
     })

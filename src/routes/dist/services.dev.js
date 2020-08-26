@@ -446,7 +446,8 @@ router.get('/getregister', verifyToken, function (req, res) {
   });
 });
 router.get('/getregisterdetails', verifyToken, function (req, res) {
-  query.GetRegisterDetails(req.params.registerId).then(function (results) {
+  console.log(req.query.registerId);
+  query.GetRegisterDetails(req.query.registerId).then(function (results) {
     res.send(results);
   })["catch"](function (err) {
     res.send("error: " + err);
