@@ -1,5 +1,4 @@
 var api = require('../api/api');
-const { response } = require('express');
 
 class Queue{
     constructor(data=[]){
