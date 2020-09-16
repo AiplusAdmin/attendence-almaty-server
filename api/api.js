@@ -1,5 +1,11 @@
 const axios = require('axios');
 const Promise = require('bluebird');
+const intel = require('intel');
+intel.basicConfig({
+	'file': './logs/ApiError.log', // file and stream are exclusive. only pass 1
+	'format': "[%(date)s] {%(levelname)s} %(name)s : %(message)s",
+	'level': intel.ERROR
+});
 
 function  get(domain,method,params,api){
     return new Promise((resolve,reject) => {
@@ -13,9 +19,10 @@ function  get(domain,method,params,api){
             }
         })
         .catch(error => {
-            console.log("Error API class: " + error);
-            reject(error);
-        })
+			intel.error(error.response.data);
+			console.log("Error API class: " + error);
+			reject(error);
+        });
     });
 }
 
@@ -32,7 +39,7 @@ function post(domain,method,params,api){
             resolve(res);
         })
         .catch(error => {
-            console.log(error);
+			intel.error(error.response.data);
             reject(error);
         })
     });

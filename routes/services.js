@@ -19,6 +19,8 @@ const Teachers = require('../modules/Teachers');
 const Contacts = require('../modules/Contacts');
 const Students = require('../modules/Students');
 const sendMail = require('../scripts/gmail');
+const logger = require('../config/winston');
+
 
 const key = {
     "domain":"aiplus",
@@ -53,6 +55,7 @@ router.get('/offices',verifyToken, (req, res) => {
             res.json(data);
         })
         .catch(err =>{
+			logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
             res.send("error: " + err);
         });
 });
@@ -66,6 +69,7 @@ router.post('/teacher',verifyToken,(req, res) => {
             res.json(data);
         })
         .catch(err =>{
+			logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
             res.send("error: " + err);
         });
 });
@@ -103,13 +107,15 @@ router.post('/groups',verifyToken, (req, res) => {
 				var found = false;
 				var index = 0;
 				data.map(function(groups,ind){
-					if(groups.ScheduleItems[0].BeginTime == req.body.params.timeFrom && groups.ScheduleItems[0].EndTime == req.body.params.timeTo){
-						var weekdays = Weekdays(groups.ScheduleItems[0].Weekdays);
-						if(weekdays.includes(date)){
-							found = true;
-							index = ind;
+					groups.ScheduleItems.map(function(ScheduleItem){
+						if(ScheduleItem.BeginTime == req.body.params.timeFrom && ScheduleItem.EndTime == req.body.params.timeTo){
+							var weekdays = Weekdays(ScheduleItem.Weekdays);
+							if(weekdays.includes(date)){
+								found = true;
+								index = ind;
+							}
 						}
-					}
+					});
 				});
 				if(found){
 					group.Id = data[index].Id;
@@ -127,6 +133,7 @@ router.post('/groups',verifyToken, (req, res) => {
            
         })
         .catch(err =>{
+			logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
             res.send("error: " + err);
         });
 });
@@ -150,6 +157,7 @@ router.post('/groupstudents',verifyToken, (req, res) => {
             return res.send(students);
         })
         .catch(err =>{
+			logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
             res.send("error: " + err);
         });
 });
@@ -172,6 +180,7 @@ router.post('/student',verifyToken, async (req,res) => {
 			res.json(student.ClientId);
 		}
 	}catch(error){
+		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 		console.log(error);
 		res.send("error: " + error);
 
@@ -200,6 +209,7 @@ router.post('/setpasses',verifyToken, (req, res) => {
         res.send({status:response.status, statusText: response.statusText});
     })
     .catch(err =>{
+		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
         res.send("error: " + err);
     });
 });
@@ -213,6 +223,7 @@ router.post('/setattendence',verifyToken, (req, res) => {
 	try{
 		students.map(function(student){
 			if(student.attendence && student.clientId != -1){
+				var comment = '';
 				var data = new Object();
 				data.edUnitId = groupId;
 				data.studentClientId = student.clientid;
@@ -232,13 +243,19 @@ router.post('/setattendence',verifyToken, (req, res) => {
 				skill.score = student.lesson;
 				skills.push(skill);
 				data.skills = skills;
-				data.commentHtml = student.comment;
+				if(student.comment){
+					student.comment.map(function(com){
+						comment+=com+'\n';
+					});
+				}
+				data.commentHtml = comment;
 				queue.add(data);
 			}
 		});
 		res.send({status: true});
 	}catch(error){
-		res.send({status: false});
+		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
+		res.send({status: false,error: error});
 	}
 });
 
@@ -255,6 +272,8 @@ router.post('/addtogroup',verifyToken, (req, res) => {
 			res.send({status: 200, message: 'OK'});
     })
     .catch(err =>{
+		console.log(err);
+		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
         res.send({status: 500, error:  err});
     });
 });
@@ -291,6 +310,12 @@ router.post('/addregister',verifyToken,async (req,res) => {
 			var promise = req.body.students.map(async function(student){
 				return new Promise(async function(resolve,resject){
 					try{
+						var comment = '';
+						if(student.comment){
+							student.comment.map(function(com){
+								comment+=com+'\n';
+							});
+						}
 						var newSubRegisters = await SubRegisters.create({
 							RegisterId: newRegister.Id,
 							ClientId: student.clientid,
@@ -299,7 +324,7 @@ router.post('/addregister',verifyToken,async (req,res) => {
 							Homework: student.attendence?student.homework:-1,
 							Test: student.attendence?student.test:-1,
 							Lesson: student.attendence?student.lesson:-1,
-							Comment: student.attendence?student.comment:-1,
+							Comment: comment,
 							Status: student.status
 						},{
 							fields:['RegisterId','ClientId','FullName','Pass','Homework','Test','Lesson','Comment','Status']
@@ -310,6 +335,7 @@ router.post('/addregister',verifyToken,async (req,res) => {
 							resolve(false);
 						}
 					}catch(err){
+						logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 						console.log(err);
 					}
 				});
@@ -323,6 +349,7 @@ router.post('/addregister',verifyToken,async (req,res) => {
 			}
 		}
 	}catch(error){
+		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 		console.log(error);
 		res.json(error);
 	}
@@ -334,17 +361,28 @@ router.post('/addstudentexample', (req, res) => {
 	.then((data) => {
         data.map(async function(record){
 			try{
-				var newStudent = await Students.create({
-					StudentId: record.Id,
-					ClientId: record.ClientId,
-					FirstName: record.FirstName,
-					LastName: record.LastName,
-					MiddleName: record.MiddleName 
-				},{
-					fields: ['StudentId','ClientId','FirstName','LastName','MiddleName']
+				var student = await Students.findOne({
+					attributes: ['ClientId'],
+					where:{
+						StudentId: record.Id
+					}
 				});
-				console.log(newStudent);
+				if(student === null){
+					var newStudent = await Students.create({
+						StudentId: record.Id,
+						ClientId: record.ClientId,
+						FirstName: record.FirstName,
+						LastName: record.LastName,
+						MiddleName: record.MiddleName 
+					},{
+						fields: ['StudentId','ClientId','FirstName','LastName','MiddleName']
+					});
+					console.log(newStudent);
+				} else {
+					console.log('Есть');
+				}
 			}catch(error){
+				logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 				console.log(error);
 			}
         });
@@ -362,6 +400,7 @@ router.post('/getauthkey',(req,res) => {
     	res.send(data.data);
 	})
 	.catch(err =>{
+		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
         res.send({status: 500, error:  err});
     });
 });
@@ -395,6 +434,7 @@ router.post('/sendpersonalmessage',(req,res) => {
 		res.send(data);
 	})
 	.catch(err =>{
+		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
         res.send({status: 500, error:  err});
     });
 });
@@ -434,10 +474,12 @@ router.post('/addteacherexample', (req, res) => {
 								}
 							}
 						}catch(err){
+							logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 							console.log(err);
 						}
 					}
 				} catch(err){
+					logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 					console.log(err);
 				}
         });
@@ -462,6 +504,7 @@ router.post('/registeramount',verifyToken,async (req,res) => {
 		else
 			res.send(false);
 	}catch(error){
+		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 		res.send(`Ошибка : ${error}`);
 	}
 });
@@ -492,6 +535,7 @@ router.post('/sendmail',verifyToken, async(req,res) => {
 			res.send({status: false});
 		}
 	}catch(error){
+		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 		console.log(error);
 	}
 });
@@ -500,7 +544,7 @@ router.get('/searchteacher',verifyToken, async (req, res) => {
 	try{
 		var val = '%'+req.query.value+'%'
 		var query = `SELECT concat("LastName",' ',"FirstName") as "FullName"
-		FROM "Teachers" WHERE "FirstName" like :val OR "LastName" like :val;`;
+		FROM "Teachers" WHERE "FirstName" like :val OR "LastName" like :val LIMIT 10;`;
 		var teachers = await sequelize.query(query,{
 			replacements:{val: val},
 			type: QueryTypes.SELECT
@@ -508,6 +552,7 @@ router.get('/searchteacher',verifyToken, async (req, res) => {
 		res.send(teachers);
 	}catch(error){
 		console.log(error);
+		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
         res.send("error: " + error);
 	}
 });
@@ -516,7 +561,7 @@ router.get('/searchstudent',verifyToken, async (req, res) => {
 	try{
 		var val = '%'+req.query.value+'%'
 		var query = `SELECT "ClientId",concat("LastName",' ',"FirstName",' ',"MiddleName") as "FullName"
-		FROM "Students" WHERE "FirstName" like :val OR "LastName" like :val OR "MiddleName" like :val;`;
+		FROM "Students" WHERE concat("FirstName",' ',"LastName",' ',"MiddleName") like :val LIMIT 10;`;
 		var students = await sequelize.query(query,{
 			replacements:{val: val},
 			type: QueryTypes.SELECT
@@ -524,6 +569,7 @@ router.get('/searchstudent',verifyToken, async (req, res) => {
 		res.send(students);
 	}catch(error){
 		console.log(error);
+		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
         res.send("error: " + error);
 	}
 });
@@ -547,6 +593,7 @@ router.get('/subteacher',verifyToken, async (req, res) => {
 			res.send([]);
 	}catch(error){
 		console.log(error);
+		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
         res.send("error: " + error);
 
 	}
@@ -569,6 +616,7 @@ router.get('/getregister',verifyToken,async (req, res) => {
 		res.send(registers);
 	}catch(error){
 		console.log(error);
+		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 		res.send(`Ошибка : ${error}`);
 	}
 });
@@ -597,10 +645,10 @@ router.get('/getregisterdetails',verifyToken,async (req, res) => {
 		res.send(subregisters);
 	}catch(error){
 		console.log(error);
+		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 		res.send(`Ошибка : ${error}`);
 	}
 });
-
 
 router.get('/getuniqueregister',verifyToken,async (req, res) => {
 	try{
@@ -612,11 +660,11 @@ router.get('/getuniqueregister',verifyToken,async (req, res) => {
 		
 		res.send(registers);
 	}catch(error){
+		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 		console.log(error);
 		res.send(`Ошибка : ${error}`);
 	}
 });
-
 
 router.get('/getsubregistersavg',verifyToken,async (req, res) => {
 	try{
@@ -639,6 +687,7 @@ router.get('/getsubregistersavg',verifyToken,async (req, res) => {
 		
 		res.send(subregisters);
 	}catch(error){
+		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 		console.log(error);
 		res.send(`Ошибка : ${error}`);
 	}

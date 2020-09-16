@@ -5,12 +5,14 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const cookieParser = require('cookie-parser');
-const logger = require('morgan');
+const morgan = require('morgan');
+const rfs = require('rotating-file-stream') 
 const cors = require('cors');
 const passport = require('passport');
 const flash = require('express-flash');
 
 const initializePassport = require('./config/passport-config');
+const logger = require('./config/winston');
 const services = require('./routes/services');
 const roles = require('./routes/roles');
 const contacts = require('./routes/contacts');
@@ -21,6 +23,11 @@ const subregisters = require('./routes/subregisters');
 
 const app = express();
 initializePassport(passport);
+
+var accessLogStream = rfs.createStream('access.log', {
+	interval: '1M', // rotate monthsly
+	path: path.join(__dirname, 'logs')
+});
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -28,7 +35,7 @@ app.set('view engine', 'ejs');
 app.use(cors());
 app.use(flash());
 app.use(cookieParser());
-app.use(logger('dev'));
+app.use(morgan('combined',{ stream: accessLogStream }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(passport.initialize());
@@ -42,7 +49,6 @@ app.use('/employees',employees);
 app.use('/registers',registers);
 app.use('/subregisters',subregisters);
 app.use('/',services);
-
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
