@@ -99,7 +99,8 @@ router.post('/login', async (req, res) => {
 //Get Groups
 router.post('/groups',verifyToken, (req, res) => {
     var params = 'types=Group&timeFrom='+req.body.params.timeFrom+'&timeTo='+req.body.params.timeTo+'&statuses=Working&officeOrCompanyId='+req.body.params.officeId+'&teacherId='+req.body.teacherId;
-    var date = Weekday(req.body.params.date);
+	var date = Weekday(req.body.params.date);
+	console.log('Teacher',req.body);
     api.get(key.domain,'GetEdUnits',params,key.apikey)
         .then((data) => {
             if(data.length>0){
@@ -209,7 +210,7 @@ router.post('/setpasses',verifyToken, (req, res) => {
         res.send({status:response.status, statusText: response.statusText});
     })
     .catch(err =>{
-		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
+		console.log(err);		
         res.send("error: " + err);
     });
 });
