@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 
 const Teachers = require('../modules/Teachers');
+const Contacts = require('../modules/Contacts');
 const generateKey = require('../scripts/generateKeys');
 //add
 router.post('/', async (req,res) => {
@@ -110,6 +111,37 @@ router.delete('/:id', async (req,res) => {
 	}
 });
 
+//delete
+router.delete('/', async (req,res) => {
+	const { id } = req.params;
+	try{
+		var teachers = await Teachers.findAll({
+			attributes: ["Id", "ContactId"]
+		});
+		teachers.map(async function(teacher){
+			await Teachers.destroy({
+				where: {
+					Id: teacher.Id
+				}
+			});
+			await Contacts.destroy({
+				where: {
+					Id: teacher.ContactId
+				}
+			});
+		});
+		res.json({
+			result: 'ok',
+			message: 'Удаление Препродавтеля успешно',
+		});
+	}catch(error){
+		res.json({
+			result: 'failed',
+			data: {},
+			message: `Удаление Препродавтеля провалено. Ошибка: ${error}`
+		});
+	}
+});
 //query all data
 router.get('/', async (req,res) => {
 	try{

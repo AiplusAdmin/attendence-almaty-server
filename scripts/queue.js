@@ -20,25 +20,31 @@ class Queue{
 				key.apikey = 'VdqvXSXu%2Fq1DWiLefLBUihGMn7MHlvSP59HIHoHH7%2BLEtHB5dtznB6sqyJIPjH5w';
 				key.domain = 'aiplus'; 
 				var response = await api.post(key.domain,'AddEditEdUnitTestResult',this.data.shift(),key.apikey);
-				if(response.status == 200 && response.statusText === 'OK'){
+				if(response.status == 200){
 					if(this.data.length)
 						this.handle();
-					else
+					else{
 						this._processing = false;
+					}
+
+					return true;
 				} else {
 					console.log("Ошибка -> ",response);
-				}
+					return false;
+				}		
 			}catch(e){
+				console.error('внутренний блок catch', e.message);
 				throw e;
 			}
         }
     }
 
     add(data){
-        this.data.push(data);
+		this.data.push(data);
 
-        if(!this._processing)
-        	this.handle();
+		if(!this._processing)
+			return this.handle();
+		
     }
 }
 

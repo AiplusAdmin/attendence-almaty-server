@@ -27,3 +27,649 @@ undefined
 2020-09-16T09:15:33.850Z error: POST - {"message":"Request failed with status code 500","name":"Error","stack":"Error: Request failed with status code 500\n    at createError (C:\\Users\\сул\\Desktop\\Git\\attendence-almaty-server\\node_modules\\axios\\lib\\core\\createError.js:16:15)\n    at settle (C:\\Users\\сул\\Desktop\\Git\\attendence-almaty-server\\node_modules\\axios\\lib\\core\\settle.js:17:12)\n    at IncomingMessage.handleStreamEnd (C:\\Users\\сул\\Desktop\\Git\\attendence-almaty-server\\node_modules\\axios\\lib\\adapters\\http.js:244:11)\n    at IncomingMessage.emit (events.js:333:22)\n    at IncomingMessage.EventEmitter.emit (domain.js:485:12)\n    at endReadableNT (_stream_readable.js:1201:12)\n    at processTicksAndRejections (internal/process/task_queues.js:84:21)","config":{"url":"https://aiplus.t8s.ru//Api/V2/AddEdUnitStudent?authkey=VdqvXSXu%2Fq1DWiLefLBUihGMn7MHlvSP59HIHoHH7%2BLEtHB5dtznB6sqyJIPjH5w","method":"post","data":"{\"edUnitId\":11887,\"studentClientId\":5743,\"begin\":\"2020-09-16\",\"weekdays\":4,\"status\":\"Normal\"}","headers":{"Accept":"application/json, text/plain, */*","Content-Type":"application/json;charset=utf-8","User-Agent":"axios/0.20.0","Content-Length":93},"transformRequest":[null],"transformResponse":[null],"timeout":0,"xsrfCookieName":"XSRF-TOKEN","xsrfHeaderName":"X-XSRF-TOKEN","maxContentLength":-1,"maxBodyLength":-1}}  - /addtogroup - ::1
 2020-09-16T09:15:33.901Z error: POST - {"message":"Request failed with status code 500","name":"Error","stack":"Error: Request failed with status code 500\n    at createError (C:\\Users\\сул\\Desktop\\Git\\attendence-almaty-server\\node_modules\\axios\\lib\\core\\createError.js:16:15)\n    at settle (C:\\Users\\сул\\Desktop\\Git\\attendence-almaty-server\\node_modules\\axios\\lib\\core\\settle.js:17:12)\n    at IncomingMessage.handleStreamEnd (C:\\Users\\сул\\Desktop\\Git\\attendence-almaty-server\\node_modules\\axios\\lib\\adapters\\http.js:244:11)\n    at IncomingMessage.emit (events.js:333:22)\n    at IncomingMessage.EventEmitter.emit (domain.js:485:12)\n    at endReadableNT (_stream_readable.js:1201:12)\n    at processTicksAndRejections (internal/process/task_queues.js:84:21)","config":{"url":"https://aiplus.t8s.ru//Api/V2/AddEdUnitStudent?authkey=VdqvXSXu%2Fq1DWiLefLBUihGMn7MHlvSP59HIHoHH7%2BLEtHB5dtznB6sqyJIPjH5w","method":"post","data":"{\"edUnitId\":11887,\"studentClientId\":9711,\"begin\":\"2020-09-16\",\"weekdays\":4,\"status\":\"Normal\"}","headers":{"Accept":"application/json, text/plain, */*","Content-Type":"application/json;charset=utf-8","User-Agent":"axios/0.20.0","Content-Length":93},"transformRequest":[null],"transformResponse":[null],"timeout":0,"xsrfCookieName":"XSRF-TOKEN","xsrfHeaderName":"X-XSRF-TOKEN","maxContentLength":-1,"maxBodyLength":-1}}  - /addtogroup - ::1
 2020-09-16T09:19:36.434Z error: POST - {}  - /sendpersonalmessage - ::1
+2020-09-20T05:44:16.674Z error: POST - {}  - /groups - ::1
+2020-09-20T05:45:57.113Z error: POST - {}  - /groups - ::1
+2020-09-20T05:46:07.077Z error: POST - {}  - /groups - ::1
+2020-09-20T05:48:08.972Z error: POST - {}  - /groups - ::1
+2020-09-20T05:48:54.984Z error: POST - {}  - /groups - ::1
+2020-09-20T05:49:55.561Z error: POST - {}  - /groups - ::ffff:127.0.0.1
+2020-09-20T05:52:09.818Z error: POST - {}  - /groups - ::1
+2020-09-20T05:52:51.322Z error: POST - {}  - /groups - ::1
+2020-09-20T05:53:12.912Z error: POST - {}  - /groups - ::1
+2020-09-20T05:53:58.788Z error: POST - {}  - /groups - ::1
+2020-09-20T05:56:13.184Z error: POST - {}  - /groups - ::1
+2020-09-20T05:57:50.905Z error: POST - {}  - /groups - ::1
+2020-09-20T05:58:15.542Z error: POST - {}  - /groups - ::1
+2020-09-20T06:00:59.516Z error: POST - {"status":410,"message":{"Error":"Требуется поле StudentClientId."}}  - /addtogroup - ::1
+2020-09-20T06:07:29.551Z error: POST - {"status":410,"message":{"Error":"Требуется поле StudentClientId."}}  - /addtogroup - ::1
+2020-09-20T06:08:21.030Z error: POST - {"status":410,"message":{"Error":"Требуется поле StudentClientId."}}  - /addtogroup - ::1
+2020-09-20T06:09:20.249Z error: POST - {"status":410,"message":{"Error":"Требуется поле StudentClientId."}}  - /addtogroup - ::1
+2020-09-20T06:10:50.831Z error: POST - {"status":410,"message":{"Error":"Требуется поле StudentClientId."}}  - /addtogroup - ::1
+2020-09-20T06:13:06.529Z error: POST - {"status":410,"message":{"Error":"Требуется поле StudentClientId."}}  - /addtogroup - ::1
+2020-09-20T06:16:55.509Z error: POST - {"status":410,"message":{"Error":"Требуется поле StudentClientId."}}  - /addtogroup - ::1
+2020-09-20T06:19:00.187Z error: POST - {"status":410,"message":{"Error":"Student is already studying with the ed. unit"}}  - /addtogroup - ::1
+2020-09-20T06:20:19.953Z error: POST - {"status":410,"message":{"Error":"Student is already studying with the ed. unit"}}  - /addtogroup - ::1
+2020-09-20T06:21:30.166Z error: POST - {"status":410,"message":{"Error":"Student is already studying with the ed. unit"}}  - /addtogroup - ::1
+2020-09-20T06:23:09.183Z error: POST - {"status":410,"message":{"Error":"Student is already studying with the ed. unit"}}  - /addtogroup - ::1
+2020-09-20T07:51:51.104Z error: uncaughtException: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+Error: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:980:15)
+    at Function.Module._load (internal/modules/cjs/loader.js:862:27)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\bot/createBot.js:2:16)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server/app.js:23:13)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+2020-09-20T07:53:06.313Z error: uncaughtException: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+Error: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:980:15)
+    at Function.Module._load (internal/modules/cjs/loader.js:862:27)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\bot/createBot.js:2:16)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server/app.js:23:13)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+2020-09-20T07:55:01.999Z error: uncaughtException: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+Error: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:980:15)
+    at Function.Module._load (internal/modules/cjs/loader.js:862:27)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\bot/createBot.js:2:16)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server/app.js:23:13)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+2020-09-20T08:02:25.518Z error: uncaughtException: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+Error: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:980:15)
+    at Function.Module._load (internal/modules/cjs/loader.js:862:27)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\bot/createBot.js:2:16)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\routes/services.js:24:13)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+2020-09-20T08:04:16.477Z error: uncaughtException: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+Error: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:980:15)
+    at Function.Module._load (internal/modules/cjs/loader.js:862:27)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\bot/createBot.js:2:16)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\routes/services.js:24:13)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+2020-09-20T08:04:54.354Z error: uncaughtException: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+Error: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:980:15)
+    at Function.Module._load (internal/modules/cjs/loader.js:862:27)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\bot/createBot.js:2:16)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\routes/services.js:24:13)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+2020-09-20T08:05:17.658Z error: uncaughtException: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+Error: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:980:15)
+    at Function.Module._load (internal/modules/cjs/loader.js:862:27)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\bot/createBot.js:2:16)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\routes/services.js:24:13)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+2020-09-20T08:06:08.507Z error: uncaughtException: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+Error: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:980:15)
+    at Function.Module._load (internal/modules/cjs/loader.js:862:27)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\bot/createBot.js:2:16)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\routes/services.js:24:13)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+2020-09-20T08:07:02.146Z error: uncaughtException: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+Error: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:980:15)
+    at Function.Module._load (internal/modules/cjs/loader.js:862:27)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\bot/createBot.js:2:16)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\routes/services.js:24:13)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+2020-09-20T08:34:29.169Z error: uncaughtException: C:\Users\сул\Desktop\Git\attendence-almaty-server\scripts\queue.js: Unexpected token, expected { (33:11)
+SyntaxError: C:\Users\сул\Desktop\Git\attendence-almaty-server\scripts\queue.js: Unexpected token, expected { (33:11)
+[0m [90m 31 | [39m					console[33m.[39mlog([32m"Ошибка -> "[39m[33m,[39mresponse)[33m;[39m
+ [90m 32 | [39m				
+[31m[1m>[22m[39m[90m 33 | [39m			}[36mfinally[39m(e){
+ [90m    | [39m			        [31m[1m^[22m[39m
+ [90m 34 | [39m		
+ [90m 35 | [39m			}
+ [90m 36 | [39m        }[0m
+    at Parser.pp$5.raise (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:4454:13)
+    at Parser.pp.unexpected (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:1761:8)
+    at Parser.pp.expect (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:1749:33)
+    at Parser.pp$1.parseBlock (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:2246:8)
+    at Parser.pp$1.parseTryStatement (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:2158:52)
+    at Parser.pp$1.parseStatement (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:1854:19)
+    at Parser.pp$1.parseBlockBody (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:2268:21)
+    at Parser.pp$1.parseBlock (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:2247:8)
+    at Parser.pp$1.parseStatement (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:1868:19)
+    at Parser.pp$1.parseIfStatement (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:2059:26)
+    at Parser.pp$1.parseStatement (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:1846:19)
+    at Parser.pp$1.parseBlockBody (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:2268:21)
+    at Parser.pp$1.parseBlock (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:2247:8)
+    at Parser.pp$3.parseFunctionBody (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:4235:22)
+    at Parser.pp$3.parseMethod (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:4180:8)
+    at Parser.pp$1.parseClassMethod (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:2583:8)
+2020-09-20T09:05:25.583Z error: POST - {"status":410,"message":{"Error":"Обязательное поле 'Text'."}}  - /sendpersonalmessage - ::1
+2020-09-20T09:09:03.078Z error: uncaughtException: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+Error: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:980:15)
+    at Function.Module._load (internal/modules/cjs/loader.js:862:27)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\bot/createBot.js:2:16)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\bin/www:11:1)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+2020-09-20T09:09:21.730Z error: uncaughtException: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+Error: Cannot find module './handlers/addStartHandler'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bot\createBot.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:980:15)
+    at Function.Module._load (internal/modules/cjs/loader.js:862:27)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\bot/createBot.js:2:16)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\bin/www:11:1)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+2020-09-20T09:37:41.016Z error: uncaughtException: Cannot find module 'smart-request-balancer'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+Error: Cannot find module 'smart-request-balancer'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:980:15)
+    at Function.Module._load (internal/modules/cjs/loader.js:862:27)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\routes/services.js:10:18)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server/app.js:16:18)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+2020-09-20T09:37:58.534Z error: uncaughtException: Cannot find module 'smart-request-balancer'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+Error: Cannot find module 'smart-request-balancer'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:980:15)
+    at Function.Module._load (internal/modules/cjs/loader.js:862:27)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\routes/services.js:10:18)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server/app.js:16:18)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+2020-09-20T09:52:42.051Z error: uncaughtException: Cannot find module 'smart-request-balancer'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+Error: Cannot find module 'smart-request-balancer'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:980:15)
+    at Function.Module._load (internal/modules/cjs/loader.js:862:27)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\routes/services.js:10:18)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server/app.js:16:18)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+2020-09-20T09:53:27.307Z error: uncaughtException: Cannot find module 'smart-request-balancer'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+Error: Cannot find module 'smart-request-balancer'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:980:15)
+    at Function.Module._load (internal/modules/cjs/loader.js:862:27)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js:10:18)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:1171:10)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js:16:18)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:1171:10)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+2020-09-20T09:53:41.984Z error: uncaughtException: Cannot find module 'smart-request-balancer'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+Error: Cannot find module 'smart-request-balancer'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:980:15)
+    at Function.Module._load (internal/modules/cjs/loader.js:862:27)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\routes/services.js:10:18)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server/app.js:16:18)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+2020-09-20T09:54:21.400Z error: uncaughtException: Cannot find module 'smart-request-balancer'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+Error: Cannot find module 'smart-request-balancer'
+Require stack:
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js
+- C:\Users\сул\Desktop\Git\attendence-almaty-server\bin\www
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:980:15)
+    at Function.Module._load (internal/modules/cjs/loader.js:862:27)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\routes/services.js:10:18)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server/app.js:16:18)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+2020-09-20T10:10:17.788Z error: POST - {"status":410,"message":{"Error":"Student is already studying with the ed. unit"}}  - /addtogroup - ::1
+2020-09-20T10:14:31.131Z error: uncaughtException: app is not defined
+ReferenceError: app is not defined
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\bot/createBot.js:10:1)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\routes/services.js:24:13)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+2020-09-20T10:17:01.742Z error: uncaughtException: buildMessageOptions is not defined
+ReferenceError: buildMessageOptions is not defined
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\bot/botUtils.js:81:2)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\routes/services.js:25:18)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at loader (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:144:5)
+    at Object.require.extensions.<computed> [as .js] (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babel-register\lib\node.js:154:7)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+2020-09-20T10:19:56.630Z error: POST - {"status":410,"message":{"Error":"Student is already studying with the ed. unit"}}  - /addtogroup - ::1
+2020-09-20T10:27:55.285Z error: uncaughtException: C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js: Unexpected token, expected , (382:32)
+SyntaxError: C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js: Unexpected token, expected , (382:32)
+[0m [90m 380 | [39m			where[33m:[39m{
+ [90m 381 | [39m				[[33mOp[39m[33m.[39mand][33m:[39m[
+[31m[1m>[22m[39m[90m 382 | [39m					{[33mGroupId[39m[33m:[39m req[33m.[39mbody[33m.[39mgroup[33m.[39m[33mId[39m[33m;[39m}[33m,[39m
+ [90m     | [39m					                           [31m[1m^[22m[39m
+ [90m 383 | [39m					{[33mLessonDate[39m[33m:[39mdate}
+ [90m 384 | [39m				]
+ [90m 385 | [39m			}[0m
+    at Parser.pp$5.raise (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:4454:13)
+    at Parser.pp.unexpected (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:1761:8)
+    at Parser.pp.expect (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:1749:33)
+    at Parser.pp$3.parseObj (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3978:12)
+    at Parser.pp$3.parseExprAtom (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3719:19)
+    at Parser.pp$3.parseExprSubscripts (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3494:19)
+    at Parser.pp$3.parseMaybeUnary (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3474:19)
+    at Parser.pp$3.parseExprOps (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3404:19)
+    at Parser.pp$3.parseMaybeConditional (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3381:19)
+    at Parser.pp$3.parseMaybeAssign (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3344:19)
+2020-09-20T10:28:17.238Z error: uncaughtException: C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js: Unexpected token, expected , (382:32)
+SyntaxError: C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js: Unexpected token, expected , (382:32)
+[0m [90m 380 | [39m			where[33m:[39m{
+ [90m 381 | [39m				[[33mOp[39m[33m.[39mand][33m:[39m[
+[31m[1m>[22m[39m[90m 382 | [39m					{[33mGroupId[39m[33m:[39m req[33m.[39mbody[33m.[39mgroup[33m.[39m[33mId[39m[33m;[39m}[33m,[39m
+ [90m     | [39m					                           [31m[1m^[22m[39m
+ [90m 383 | [39m					{[33mLessonDate[39m[33m:[39mdate}
+ [90m 384 | [39m				]
+ [90m 385 | [39m			}[0m
+    at Parser.pp$5.raise (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:4454:13)
+    at Parser.pp.unexpected (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:1761:8)
+    at Parser.pp.expect (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:1749:33)
+    at Parser.pp$3.parseObj (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3978:12)
+    at Parser.pp$3.parseExprAtom (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3719:19)
+    at Parser.pp$3.parseExprSubscripts (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3494:19)
+    at Parser.pp$3.parseMaybeUnary (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3474:19)
+    at Parser.pp$3.parseExprOps (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3404:19)
+    at Parser.pp$3.parseMaybeConditional (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3381:19)
+    at Parser.pp$3.parseMaybeAssign (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3344:19)
+2020-09-20T10:29:42.753Z error: uncaughtException: Unexpected token ';'
+C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js:382
+					{GroupId: req.body.group.Id;},
+					                           ^
+
+SyntaxError: Unexpected token ';'
+    at wrapSafe (internal/modules/cjs/loader.js:1067:16)
+    at Module._compile (internal/modules/cjs/loader.js:1115:27)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:1171:10)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js:16:18)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:1171:10)
+2020-09-20T10:30:26.316Z error: uncaughtException: Unexpected token ';'
+C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js:382
+					{GroupId: req.body.group.Id;},
+					                           ^
+
+SyntaxError: Unexpected token ';'
+    at wrapSafe (internal/modules/cjs/loader.js:1067:16)
+    at Module._compile (internal/modules/cjs/loader.js:1115:27)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:1171:10)
+    at Module.load (internal/modules/cjs/loader.js:1000:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:899:14)
+    at Module.require (internal/modules/cjs/loader.js:1040:19)
+    at require (internal/modules/cjs/helpers.js:72:18)
+    at Object.<anonymous> (C:\Users\сул\Desktop\Git\attendence-almaty-server\app.js:16:18)
+    at Module._compile (internal/modules/cjs/loader.js:1151:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:1171:10)
+2020-09-20T10:30:33.255Z error: uncaughtException: C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js: Unexpected token, expected , (382:32)
+SyntaxError: C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js: Unexpected token, expected , (382:32)
+[0m [90m 380 | [39m			where[33m:[39m{
+ [90m 381 | [39m				[[33mOp[39m[33m.[39mand][33m:[39m[
+[31m[1m>[22m[39m[90m 382 | [39m					{[33mGroupId[39m[33m:[39m req[33m.[39mbody[33m.[39mgroup[33m.[39m[33mId[39m[33m;[39m}[33m,[39m
+ [90m     | [39m					                           [31m[1m^[22m[39m
+ [90m 383 | [39m					{[33mLessonDate[39m[33m:[39mdate}
+ [90m 384 | [39m				]
+ [90m 385 | [39m			}[0m
+    at Parser.pp$5.raise (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:4454:13)
+    at Parser.pp.unexpected (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:1761:8)
+    at Parser.pp.expect (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:1749:33)
+    at Parser.pp$3.parseObj (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3978:12)
+    at Parser.pp$3.parseExprAtom (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3719:19)
+    at Parser.pp$3.parseExprSubscripts (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3494:19)
+    at Parser.pp$3.parseMaybeUnary (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3474:19)
+    at Parser.pp$3.parseExprOps (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3404:19)
+    at Parser.pp$3.parseMaybeConditional (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3381:19)
+    at Parser.pp$3.parseMaybeAssign (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3344:19)
+2020-09-20T10:34:16.776Z error: POST - {"status":410,"message":{"Error":"Student is already studying with the ed. unit"}}  - /addtogroup - ::1
+2020-09-20T10:37:29.163Z error: POST - {"status":410,"message":{"Error":"Student is already studying with the ed. unit"}}  - /addtogroup - ::1
+2020-09-20T11:13:07.100Z error: uncaughtException: C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js: await is a reserved word (516:20)
+SyntaxError: C:\Users\сул\Desktop\Git\attendence-almaty-server\routes\services.js: await is a reserved word (516:20)
+[0m [90m 514 | [39m			}
+ [90m 515 | [39m			[36mif[39m(student[33m.[39mstatus){
+[31m[1m>[22m[39m[90m 516 | [39m				[36mvar[39m studentId [33m=[39m await [33mStudents[39m[33m.[39mfindOne({
+ [90m     | [39m				                [31m[1m^[22m[39m
+ [90m 517 | [39m					attributes[33m:[39m [[32m'StudentId'[39m][33m,[39m
+ [90m 518 | [39m					where[33m:[39m{
+ [90m 519 | [39m						[33mClientId[39m[33m:[39m student[33m.[39mclientid[0m
+    at Parser.pp$5.raise (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:4454:13)
+    at Parser.pp$3.checkReservedWord (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:4347:10)
+    at Parser.pp$3.parseIdentifier (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:4324:10)
+    at Parser.pp$3.parseExprAtom (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3648:21)
+    at Parser.pp$3.parseExprSubscripts (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3494:19)
+    at Parser.pp$3.parseMaybeUnary (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3474:19)
+    at Parser.pp$3.parseExprOps (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3404:19)
+    at Parser.pp$3.parseMaybeConditional (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3381:19)
+    at Parser.pp$3.parseMaybeAssign (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:3344:19)
+    at Parser.pp$1.parseVar (C:\Users\сул\Desktop\Git\attendence-almaty-server\node_modules\babylon\lib\index.js:2340:24)

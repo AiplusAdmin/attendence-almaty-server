@@ -1,11 +1,6 @@
 const axios = require('axios');
 const Promise = require('bluebird');
-const intel = require('intel');
-intel.basicConfig({
-	'file': './logs/ApiError.log', // file and stream are exclusive. only pass 1
-	'format': "[%(date)s] {%(levelname)s} %(name)s : %(message)s",
-	'level': intel.ERROR
-});
+
 
 function  get(domain,method,params,api){
     return new Promise((resolve,reject) => {
@@ -15,13 +10,12 @@ function  get(domain,method,params,api){
         .then(response => {
             if(response.status == 200){
                 var json = response.data;
-                resolve(json[unit]);
+                resolve({status: 200,data: json[unit]});
             }
         })
         .catch(error => {
-			intel.error(error.response.data);
 			console.log("Error API class: " + error);
-			reject(error);
+            reject({status: 410,message: error.response.data});
         });
     });
 }
@@ -35,12 +29,13 @@ function post(domain,method,params,api){
             data: JSON.stringify(params),
             headers: { 'Content-Type':'application/json;charset=utf-8'}
         })
-        .then((res) => {
-            resolve(res);
+        .then((response) => {
+            if(response.status === 200){
+				resolve({status: 200,message: 'OK'});
+			}
         })
         .catch(error => {
-			intel.error(error.response.data);
-            reject(error);
+            reject({status: 410,message: error.response.data});
         })
     });
 }

@@ -7,6 +7,7 @@ const Op = require('sequelize').Op;
 const { QueryTypes } = require('sequelize');
 const bcrypt = require('bcrypt');
 const uniqueRandom = require('unique-random');
+const QueueBot = require('smart-request-balancer');
 
 const verifyToken = require('../scripts/verifyToken');
 const generateKey = require('../scripts/generateKeys');
@@ -19,14 +20,43 @@ const Teachers = require('../modules/Teachers');
 const Contacts = require('../modules/Contacts');
 const Students = require('../modules/Students');
 const sendMail = require('../scripts/gmail');
-const logger = require('../config/winston');
-
+const bot = require('../bot/createBot');
+const botUtils = require('../bot/botUtils');
 
 const key = {
     "domain":"aiplus",
     "apikey":"VdqvXSXu%2Fq1DWiLefLBUihGMn7MHlvSP59HIHoHH7%2BLEtHB5dtznB6sqyJIPjH5w"
 };
 
+const queueBot = new QueueBot({
+	rules:{
+		telegramIndividual: {
+			rate: 1,    // one message
+			limit: 1,   // per second
+			priority: 1
+		},
+		telegramGroup: {
+			rate: 20,    // 20 messages
+			limit: 60,  // per minute
+			priority: 1
+		},
+		telegramBroadcast: {
+			rate: 30,
+			limit: 2,
+			priority: 2
+		}
+	},
+	default: {                   // Default rules (if provided rule name is not found
+		rate: 30,
+		limit: 1
+	},
+	overall:{
+		rate: 30,       
+		limit: 1
+	},
+	retryTime: 300,              // Default retry time. Can be configured in retry fn
+	ignoreOverallOverheat: false  // Should we ignore overheat of queue itself  
+});
 
 function Weekdays(num){
     var weekdays = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
@@ -51,35 +81,37 @@ function Weekday(date){
 //Get Offices
 router.get('/offices',verifyToken, (req, res) => {
     api.get(this.key.domain,'GetOffices','',this.key.apikey)
-        .then((data) => {
-            res.json(data);
+        .then((response) => {
+			res.json(response);
         })
         .catch(err =>{
-			logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
-            res.send("error: " + err);
+            res.json({
+				status: 410,
+				data: []
+			});
         });
 });
 
 //Get Teachers
 router.post('/teacher',verifyToken,(req, res) => {
-	console.log(req.body);
     var params = 'id='+req.body.teacherId;
     api.get(key.domain,'GetTeachers',params,key.apikey)
-        .then((data) => {
-            res.json(data);
-        })
+        .then((response) => {
+			res.json(response);    
+		})
         .catch(err =>{
-			logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
-            res.send("error: " + err);
+            res.json({
+				status: 410,
+				data: []
+			}); 
         });
 });
 
 router.post('/login', async (req, res) => {
 	var remember = req.body.remember;
 	passport.authenticate('local',(err,user,info) => {
-		console.log(user);
 		if(err)
-			res.send({status: 400,err});
+			res.send({status: 400,message: 'Error'});
 		else if(user){
 			var exipersIn = '';
 			if (remember)
@@ -90,7 +122,15 @@ router.post('/login', async (req, res) => {
 			
 			res.set('ACCESSTOKEN',token);
 			res.set('AUTHTOKEN',user.authkey);
-			res.send({status: 200, teacherId: user.teacherId,roleId: user.roleId, authtoken: user.authkey, accesstoken: token});
+			res.json({
+				status: 200, 
+				data: {
+					teacherId: user.teacherId,
+					roleId: user.roleId, 
+					authtoken: user.authkey, 
+					accesstoken: token
+				}
+			});
 		} else
 			res.send({status: 404, message: info.message});
 	})(req,res);
@@ -100,42 +140,50 @@ router.post('/login', async (req, res) => {
 router.post('/groups',verifyToken, (req, res) => {
     var params = 'types=Group&timeFrom='+req.body.params.timeFrom+'&timeTo='+req.body.params.timeTo+'&statuses=Working&officeOrCompanyId='+req.body.params.officeId+'&teacherId='+req.body.teacherId;
 	var date = Weekday(req.body.params.date);
-	console.log('Teacher',req.body);
     api.get(key.domain,'GetEdUnits',params,key.apikey)
-        .then((data) => {
-            if(data.length>0){
-				var group = new Object();
+        .then((response) => {
+            if(response.status === 200){
 				var found = false;
-				var index = 0;
-				data.map(function(groups,ind){
-					groups.ScheduleItems.map(function(ScheduleItem){
+				var i = -1;
+				var j = -1;
+				response.data.map(function(groups,index){
+					groups.ScheduleItems.map(function(ScheduleItem,ind){
 						if(ScheduleItem.BeginTime == req.body.params.timeFrom && ScheduleItem.EndTime == req.body.params.timeTo){
 							var weekdays = Weekdays(ScheduleItem.Weekdays);
 							if(weekdays.includes(date)){
 								found = true;
-								index = ind;
+								i = index;
+								j = ind;
 							}
 						}
 					});
 				});
+		
 				if(found){
-					group.Id = data[index].Id;
-					group.name = data[index].Name;
-					group.teacher = data[index].ScheduleItems[0].Teacher;
-					group.time = data[index].ScheduleItems[0].BeginTime + '-' + data[index].ScheduleItems[0].EndTime;
-					group.days = Weekdays(data[index].ScheduleItems[0].Weekdays);
-					group.weekdays = data[index].ScheduleItems[0].Weekdays;
-					
-					res.json({group: group, status: true});
+					var group = new Object();
+					group.Id = response.data[i].Id;
+					group.name = response.data[i].Name;
+					group.teacher = response.data[i].ScheduleItems[j].Teacher;
+					group.time = response.data[i].ScheduleItems[j].BeginTime + '-' + response.data[i].ScheduleItems[j].EndTime;
+					group.days = Weekdays(response.data[i].ScheduleItems[j].Weekdays);
+					group.weekdays = response.data[i].ScheduleItems[j].Weekdays;
+					res.json({status: 200,data: group});
 				} else {
-					res.json({status: false});
+					res.json({status: 200,data:{}});
 				}
-            }
-           
+            } else {
+				res.json({
+					status: 410,
+					data: []
+				});
+			}
         })
         .catch(err =>{
-			logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
-            res.send("error: " + err);
+			console.log(err);
+            res.json({
+				status: 410,
+				data: []
+			});
         });
 });
 
@@ -143,23 +191,36 @@ router.post('/groups',verifyToken, (req, res) => {
 router.post('/groupstudents',verifyToken, (req, res) => {
     var params = 'edUnitId=' + req.body.groupId;
     api.get(key.domain,'GetEdUnitStudents',params,key.apikey)
-        .then((data) => {
-			var students = new Array();
-            data.map((student) => {
-                if(student.StudyUnits == undefined && student.BeginDate < req.body.date){
-                    var obj = new Object();
-                    obj.clientid = student.StudentClientId;
-                    obj.name = student.StudentName;
-                    obj.status = false;
-                    obj.attendence = false;
-                    students.push(obj);
-                }
-            });
-            return res.send(students);
+        .then((response) => {
+			if(response.status === 200){
+				var students = new Array();
+				response.data.map((student) => {
+					if(student.StudyUnits == undefined && student.BeginDate < req.body.date){
+						var obj = new Object();
+						obj.clientid = student.StudentClientId;
+						obj.name = student.StudentName;
+						obj.status = false;
+						obj.attendence = false;
+						obj.aibaks = 0;
+						students.push(obj);
+					}
+				});
+				res.send({
+					status: 200,
+					data: students
+				});
+			} else {
+				res.json({
+					status: 410,
+					data: []
+				});
+			}
         })
         .catch(err =>{
-			logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
-            res.send("error: " + err);
+            res.json({
+				status: 410,
+				data: []
+			});
         });
 });
 
@@ -176,15 +237,21 @@ router.post('/student',verifyToken, async (req,res) => {
 			attributes: ['ClientId']
 		});
 		if(student === null){
-			res.json(null)
+			res.json({
+				status: 404,
+				message: 'Ученика нет'
+			});
 		} else {
-			res.json(student.ClientId);
+			res.json({
+				status: 200,
+				data: student.ClientId
+			});
 		}
 	}catch(error){
-		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
-		console.log(error);
-		res.send("error: " + error);
-
+		res.json({
+			status: 404,
+			message: 'Ученика нет'
+		});
 	}
 });
 
@@ -195,7 +262,7 @@ router.post('/setpasses',verifyToken, (req, res) => {
     var students = req.body.students;
     var params = new Array();
     students.map(function(student){
-        if(student.clientId != -1){
+        if(student.clientId != -1 && !student.status){
             var st = new Object();
             st.Date = data;
             st.EdUnitId = groupId;
@@ -207,11 +274,14 @@ router.post('/setpasses',verifyToken, (req, res) => {
     });
     api.post(key.domain,'SetStudentPasses',params,key.apikey)
     .then((response) => {
-        res.send({status:response.status, statusText: response.statusText});
-    })
+		res.json(response);
+	})
     .catch(err =>{
 		console.log(err);		
-        res.send("error: " + err);
+        res.json({
+			status: 500,
+			message: 'Error'
+		});
     });
 });
 
@@ -222,8 +292,9 @@ router.post('/setattendence',verifyToken, (req, res) => {
     var students = req.body.students;
 	var queue = new Queue();
 	try{
-		students.map(function(student){
-			if(student.attendence && student.clientId != -1){
+		var response = null;
+		students.map(async function(student){
+			if(student.attendence && student.clientId != -1 && !student.status){
 				var comment = '';
 				var data = new Object();
 				data.edUnitId = groupId;
@@ -250,62 +321,77 @@ router.post('/setattendence',verifyToken, (req, res) => {
 					});
 				}
 				data.commentHtml = comment;
-				queue.add(data);
+				response = await queue.add(data);
 			}
 		});
-		res.send({status: true});
+		if(response){
+			res.json({
+				status: 200,
+				message: 'OK'
+			});
+		} else {
+			res.json({
+				status: 410,
+				message: 'Error'
+			});
+		}
 	}catch(error){
-		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
-		res.send({status: false,error: error});
+		res.json({
+			status: 410,
+			message: 'Error'
+		});	
 	}
 });
 
 router.post('/addtogroup',verifyToken, (req, res) => {
 	var params = new Object();
 	params.edUnitId = req.body.group.Id;
-    params.studentClientId = req.body.clientId;
+    params.StudentClientId = req.body.clientId;
     params.begin = req.body.group.date;
     params.weekdays = req.body.group.weekdays;
-    params.status = 'Normal';
+	params.status = 'Normal';
+	console.log(params);
     api.post(key.domain,'AddEdUnitStudent',params,key.apikey)
-    .then((status) => {
-		if(status.status == 200 && status.statusText == 'OK')
-			res.send({status: 200, message: 'OK'});
+    .then((response) => {
+		console.log('res',response);
+		res.json(response);
     })
     .catch(err =>{
 		console.log(err);
-		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
-        res.send({status: 500, error:  err});
+        res.json({
+			status: 410, 
+			message:  'Error'
+		});
     });
 });
 
 router.post('/addregister',verifyToken,async (req,res) => {
 	try{
-			var TeacherId = req.body.teacherId;
-			var GroupId = req.body.group.Id;
-			var GroupName = req.body.group.name;
-			var Time = req.body.group.time;
-			var LessonDate = req.body.group.date.substr(0, 10);
-			var WeekDays = req.body.group.days;
-			var SubmitDay = req.body.submitDay.substr(0, 10);
-			var SubmitTime = req.body.submitTime;
-			var IsSubmitted = req.body.isSubmitted;
-			var IsStudentAdd = req.body.group.isStudentAdd ? req.body.group.isStudentAdd:false;
-			var IsOperator = req.body.group.isOperator ? req.body.group.isOperator:false;
+		var TeacherId = req.body.teacherId;
+		var GroupId = req.body.group.Id;
+		var GroupName = req.body.group.name;
+		var Time = req.body.group.time;
+		var LessonDate = req.body.group.date.substr(0, 10);
+		var WeekDays = req.body.group.days;
+		var SubmitDay = req.body.submitDay.substr(0, 10);
+		var SubmitTime = req.body.submitTime;
+		var IsSubmitted = req.body.isSubmitted;
+		var IsStudentAdd = req.body.group.isStudentAdd ? req.body.group.isStudentAdd:false;
+		var IsOperator = req.body.group.isOperator ? req.body.group.isOperator:false;
 		var newRegister = await Registers.create({
-			TeacherId,
-			GroupId,
-			GroupName,
-			Time,
-			LessonDate,
-			WeekDays,
-			SubmitDay,
-			SubmitTime,
-			IsSubmitted,
-			IsStudentAdd,
-			IsOperator		
-		},{
-			fields:['TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator']
+				TeacherId,
+				GroupId,
+				GroupName,
+				Time,
+				LessonDate,
+				WeekDays,
+				SubmitDay,
+				SubmitTime,
+				IsSubmitted,
+				IsStudentAdd,
+				IsOperator		
+			},{
+				fields:['TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator']
 		});
 		if(newRegister){
 			var promise = req.body.students.map(async function(student){
@@ -336,7 +422,6 @@ router.post('/addregister',verifyToken,async (req,res) => {
 							resolve(false);
 						}
 					}catch(err){
-						logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 						console.log(err);
 					}
 				});
@@ -345,14 +430,22 @@ router.post('/addregister',verifyToken,async (req,res) => {
 			var ok = responses.every(elem => elem == true);
 			if(ok){
 				res.json({
-					result: 'ok'
+					status: 200,
+					message: 'OK'
+				});
+			} else {
+				res.json({
+					status: 500,
+					message: 'Error'
 				});
 			}
 		}
 	}catch(error){
-		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 		console.log(error);
-		res.json(error);
+		res.json({
+			status: 500,
+			message: 'Error'
+		});
 	}
 });
 
@@ -360,7 +453,7 @@ router.post('/addstudentexample', (req, res) => {
 	var params = "statuses="+encodeURIComponent('АДАПТАЦИОННЫЙ ПЕРИОД,Занимается,Заморозка,Регистрация,Онлайн обучение');
 	api.get('aiplus','GetStudents',params,'VdqvXSXu%2Fq1DWiLefLBUihGMn7MHlvSP59HIHoHH7%2BLEtHB5dtznB6sqyJIPjH5w')
 	.then((data) => {
-        data.map(async function(record){
+        data.data.map(async function(record){
 			try{
 				var student = await Students.findOne({
 					attributes: ['ClientId'],
@@ -383,7 +476,6 @@ router.post('/addstudentexample', (req, res) => {
 					console.log('Есть');
 				}
 			}catch(error){
-				logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 				console.log(error);
 			}
         });
@@ -391,96 +483,99 @@ router.post('/addstudentexample', (req, res) => {
     });
 });
 
-router.post('/getauthkey',(req,res) => {
-	var params = new Object();
-	params.login = "0.sd.amocrm@gmail.com";
-	params.password = "n6J}P,hx4QX{28kg";
-	api.post(key.domain,'GetMemberAuthKey',params,key.apikey)
-	.then((data) => {
-		console.log(data);
-    	res.send(data.data);
-	})
-	.catch(err =>{
-		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
-        res.send({status: 500, error:  err});
-    });
-});
-
-router.post('/sendpersonalmessage',(req,res) => {
+router.post('/sendmessagetelegram',(req,res) => {
 	var text = '';
+	var url = 'https://aiplus.t8s.ru/Learner/Group/';
+	var ok = false;
+	var arrbtn = new Array();
 	if(req.body.group.change){
+		url += req.body.group.Id;
+		ok = true;
 		text+='Была замена : \n Заменяющий преподаватель: ' + req.body.teacherName + '\nЗаменяемый преподаватель: ' + req.body.group.teacher + '\n Дата замены: '+ req.body.group.date +'\nгруппа: Id: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n\n';
 	}
-
 	if(req.body.group.isOperator){
-		req.body.students.map(student => {
+		if(!ok)
+			url += req.body.group.Id;
+		req.body.students.map(async student => {
 			if(student.status && student.clientid == -1){
 				text += 'Найти и добавить ученика в группу\n Ученик: ' + student.name + ' в группу: Id: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n';
-				text += 'Аттендансе студента :\nФИО : ' + student.name + '\nД/з: ' + student.homework + '\nСрез: ' + student.test+'\nРанг: ' + student.lesson+'\nКомментарии: ' + student.comment+'\n\n\n';
+				var com = student.comment?student.comment:'';
+				text += 'Аттендансе студента :\nФИО : ' + student.name + '\nД/з: ' + student.homework + '\nСрез: ' + student.test+'\nРанг: ' + student.lesson+'\nКомментарии: ' + com+'\n\n\n';
 			}
-			if(student.status && student.clientid != -1){
-				text += 'Добавить Ученика: ' + student.name + ' в группу: Id: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n';
-				text += 'Аттендансе студента :\nФИО : ' + student.name + '\nД/з: ' + student.homework + '\nСрез: ' + student.test+'\nРанг: ' + student.lesson+'\nКомментарии: ' + student.comment+'\n\n\n';
+			if(student.status){
+				var studentId = await Students.findOne({
+					attributes: ['StudentId'],
+					where:{
+						ClientId: student.clientid
+					}
+				});
+
+				text += 'Добавить Ученика: ' + student.name + ' в группу: \nId: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n';
+				var com = student.comment?student.comment:'';
+				text += 'Аттендансе студента :\nId: '+studentId+'\nФИО : ' + student.name + '\nД/з: ' + student.homework + '\nСрез: ' + student.test+'\nРанг: ' + student.lesson+'\nКомментарии: ' + com+'\n\n\n';
 			}
 		});
 	}
-	var params = new Object();
-	//params.authkey = 'VdqvXSXu/q1DWiLefLBUiugWL5fYnx5b394FJv4TGTPagu2dyu00brliDcg6C6/Z';
 
-	params.collocutorId = 11358;
-	params.text = text;
-	api.post('aiplus','AddPersonalMessage',params,'VdqvXSXu/q1DWiLefLBUiugWL5fYnx5b394FJv4TGTPagu2dyu00brliDcg6C6/Z')
-	.then((data) => {
-		console.log(data.data);
-		res.send(data);
-	})
-	.catch(err =>{
-		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
-        res.send({status: 500, error:  err});
-    });
+	queueBot.request((retry) => bot.telegram.sendMessage('-386513940',text,botUtils.buildUrlButton('Ссылка на группу',url))
+		.catch(error => {
+			console.log(error);
+			if (error.response.status === 429) { // We've got 429 - too many requests
+					return retry(error.response.data.parameters.retry_after) // usually 300 seconds
+			}
+			throw error; // throw error further
+	}),'-386513940','telegramGroup');
 });
 
 router.post('/addteacherexample', (req, res) => {
    api.get('aiplus','GetTeachers','','VdqvXSXu%2Fq1DWiLefLBUihGMn7MHlvSP59HIHoHH7%2BLEtHB5dtznB6sqyJIPjH5w')
    .then((data) => {
-        data.map(async function(record){
+        data.data.map(async function(record){
 				try{
-					if(record.Status == 'Работает'){
+					if(record.Status == 'Работает' || record.Status == 'Стажировка/Обучалка'){
 						try{
-							var newContact = await Contacts.create({
-								Mobile: record.Mobile,
-								Email: record.EMail
-							},{
-								fields:['Mobile','Email']
-							});
-							if(newContact){
-								try{
-									var email = record.EMail != undefined ? record.EMail : '';
-									var pass =  await bcrypt.hash('123456',10);
-									var auth = generateKey();
-									var newTeacher = await Teachers.create({
-										TeacherId: record.Id,
-										FirstName: record.FirstName,
-										LastName: record.LastName,
-										ContactId: newContact.Id,
-										Email: email,
-										Password: pass,
-										AUTH: auth,
-										RoleId: 2
-									},{
-										fields: ['TeacherId','FirstName','LastName','ContactId','Email','Password','AUTH','RoleId']
-									});
-								}catch(error){
-									console.log(error);
+							var teacher = await Teachers.findOne({
+								attributes: ['TeacherId'],
+								where:{
+									TeacherId: record.Id
 								}
+							});
+							if(teacher === null) {
+								var newContact = await Contacts.create({
+									Mobile: record.Mobile,
+									Email: record.EMail
+								},{
+									fields:['Mobile','Email']
+								});
+								if(newContact){
+									try{
+										var email = record.EMail.toLowerCase() != undefined ? record.EMail : '';
+										var pass =  await bcrypt.hash('123456',10);
+										var auth = generateKey();
+										var newTeacher = await Teachers.create({
+											TeacherId: record.Id,
+											FirstName: record.FirstName,
+											LastName: record.LastName,
+											ContactId: newContact.Id,
+											Email: email,
+											Password: pass,
+											AUTH: auth,
+											RoleId: 2
+										},{
+											fields: ['TeacherId','FirstName','LastName','ContactId','Email','Password','AUTH','RoleId']
+										});
+									}catch(error){
+										console.log(error);
+									}
+								}
+							} else {
+								console.log('Есть');
 							}
 						}catch(err){
-							logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 							console.log(err);
 						}
 					}
 				} catch(err){
-					logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 					console.log(err);
 				}
         });
@@ -501,12 +596,20 @@ router.post('/registeramount',verifyToken,async (req,res) => {
 			}
 		});
 		if(registers === null)
-			res.send(true);
+			res.send({
+				status: 200,
+				message: 'OK'
+			});
 		else
-			res.send(false);
+			res.send({
+				status: 410,
+				message: 'Уже заполнен'
+			});
 	}catch(error){
-		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
-		res.send(`Ошибка : ${error}`);
+		res.send({
+			status: 500,
+			message: 'Error'
+		});
 	}
 });
 
@@ -531,13 +634,15 @@ router.post('/sendmail',verifyToken, async(req,res) => {
 			console.log(mailOptions);
 			sendMail(mailOptions);
 			
-			res.send({status: true, code: code});
+			res.json({status: 200, data: code});
 		} else {
-			res.send({status: false});
+			res.json({status: 500, message: 'Error'});
 		}
 	}catch(error){
-		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
-		console.log(error);
+		res.json({
+			status: 500,
+			message: 'Error'
+		});
 	}
 });
 
@@ -553,8 +658,7 @@ router.get('/searchteacher',verifyToken, async (req, res) => {
 		res.send(teachers);
 	}catch(error){
 		console.log(error);
-		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
-        res.send("error: " + error);
+        res.send([]);
 	}
 });
 
@@ -570,8 +674,7 @@ router.get('/searchstudent',verifyToken, async (req, res) => {
 		res.send(students);
 	}catch(error){
 		console.log(error);
-		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
-        res.send("error: " + error);
+        res.send([]);
 	}
 });
 
@@ -581,22 +684,29 @@ router.get('/subteacher',verifyToken, async (req, res) => {
 		var LastName = fullname[0];
 		var FirstName = fullname[1];
 
-		var teacher = await Teachers.findAll({
+		var teacher = await Teachers.findOne({
 			attributes: ['TeacherId',[sequelize.fn("concat",sequelize.col("LastName")," ",sequelize.col("FirstName")),"FullName"]],
 			where:{
 				LastName,
 				FirstName
 			}
 		});
-		if(teacher.length == 1)
-			res.send(teacher[0]);
+		if(teacher === null)
+			res.send({
+				status: 410,
+				message: 'Такого преподавателя нет'
+			});
 		else
-			res.send([]);
+			res.json({
+				status: 200,
+				data: teacher
+			});
 	}catch(error){
 		console.log(error);
-		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
-        res.send("error: " + error);
-
+        res.send({
+			status: 500,
+			message: 'Error'
+		});
 	}
 });
 
@@ -617,8 +727,7 @@ router.get('/getregister',verifyToken,async (req, res) => {
 		res.send(registers);
 	}catch(error){
 		console.log(error);
-		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
-		res.send(`Ошибка : ${error}`);
+		res.send([]);
 	}
 });
 
@@ -646,8 +755,7 @@ router.get('/getregisterdetails',verifyToken,async (req, res) => {
 		res.send(subregisters);
 	}catch(error){
 		console.log(error);
-		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
-		res.send(`Ошибка : ${error}`);
+		res.send([]);
 	}
 });
 
@@ -661,9 +769,8 @@ router.get('/getuniqueregister',verifyToken,async (req, res) => {
 		
 		res.send(registers);
 	}catch(error){
-		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 		console.log(error);
-		res.send(`Ошибка : ${error}`);
+		res.send([]);
 	}
 });
 
@@ -688,9 +795,30 @@ router.get('/getsubregistersavg',verifyToken,async (req, res) => {
 		
 		res.send(subregisters);
 	}catch(error){
-		logger.error(`${req.method} - ${JSON.stringify(err)}  - ${req.originalUrl} - ${req.ip}`);
 		console.log(error);
-		res.send(`Ошибка : ${error}`);
+		res.send([]);
+	}
+});
+
+router.get('/getdayregisters',async(req,res) => {
+	try{
+		var date = new Date(req.query.date);
+
+		const query = `SELECT reg."Id", reg."GroupName", reg."Time", reg."LessonDate", reg."WeekDays",
+			reg."SubmitDay", reg."SubmitTime", concat(teach."LastName",' ',teach."FirstName") as "FullName", COUNT(subreg."Id") as "All"
+			FROM public."Registers" as reg
+			LEFT JOIN public."Teachers" as teach ON reg."TeacherId" = teach."TeacherId"
+			LEFT JOIN public."SubRegisters" as subreg ON reg."Id" = subreg."RegisterId" AND subreg."Pass" = true
+			WHERE reg."LessonDate" = :date
+			GROUP BY reg."Id",teach."LastName",teach."FirstName";`
+		var registers = await sequelize.query(query,{
+			replacements:{date: date},
+			type: QueryTypes.SELECT
+		});
+		res.send(registers);
+	}catch(error){
+		console.log(error);
+		res.send([]);
 	}
 });
 

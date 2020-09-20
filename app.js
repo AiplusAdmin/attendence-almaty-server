@@ -12,7 +12,6 @@ const passport = require('passport');
 const flash = require('express-flash');
 
 const initializePassport = require('./config/passport-config');
-const logger = require('./config/winston');
 const services = require('./routes/services');
 const roles = require('./routes/roles');
 const contacts = require('./routes/contacts');
@@ -20,6 +19,7 @@ const teachers = require('./routes/teachers');
 const employees = require('./routes/employees');
 const registers = require('./routes/registers');
 const subregisters = require('./routes/subregisters');
+const bot = require('./bot/createBot');
 
 const app = express();
 initializePassport(passport);
@@ -50,6 +50,8 @@ app.use('/registers',registers);
 app.use('/subregisters',subregisters);
 app.use('/',services);
 
+//start bot
+bot.launch();
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));

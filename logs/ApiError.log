@@ -86,3 +86,19 @@
 [2020-09-16 15:15:33] {ERROR} root : {"Error":"Ученик Абжанов А. занят в указанное время с Группа R.5.ROU-B9 <i>[9:30-10:15 Ср (с 09.09)]</i>"}
 [2020-09-16 15:15:33] {ERROR} root : {"Error":"Ученик Заречный Д. занят в указанное время с Группа K.5.ROU-C5 <i>[9:30-10:15 Ср (с 02.09)]</i>"}
 [2020-09-16 15:19:37] {ERROR} root : {"Error":"The student is not in the ed. unit"}
+[2020-09-20 12:00:59] {ERROR} root : {"Error":"Требуется поле StudentClientId."}
+[2020-09-20 12:07:29] {ERROR} root : {"Error":"Требуется поле StudentClientId."}
+[2020-09-20 12:08:21] {ERROR} root : {"Error":"Требуется поле StudentClientId."}
+[2020-09-20 12:09:20] {ERROR} root : {"Error":"Требуется поле StudentClientId."}
+[2020-09-20 12:10:50] {ERROR} root : {"Error":"Требуется поле StudentClientId."}
+[2020-09-20 12:13:06] {ERROR} root : {"Error":"Требуется поле StudentClientId."}
+[2020-09-20 12:16:55] {ERROR} root : {"Error":"Требуется поле StudentClientId."}
+[2020-09-20 12:19:00] {ERROR} root : {"Error":"Student is already studying with the ed. unit"}
+[2020-09-20 12:20:19] {ERROR} root : {"Error":"Student is already studying with the ed. unit"}
+[2020-09-20 12:21:30] {ERROR} root : {"Error":"Student is already studying with the ed. unit"}
+[2020-09-20 12:23:09] {ERROR} root : {"Error":"Student is already studying with the ed. unit"}
+[2020-09-20 15:05:25] {ERROR} root : {"Error":"Обязательное поле 'Text'."}
+[2020-09-20 16:10:17] {ERROR} root : {"Error":"Student is already studying with the ed. unit"}
+[2020-09-20 16:19:56] {ERROR} root : {"Error":"Student is already studying with the ed. unit"}
+[2020-09-20 16:34:16] {ERROR} root : {"Error":"Student is already studying with the ed. unit"}
+[2020-09-20 16:37:29] {ERROR} root : {"Error":"Student is already studying with the ed. unit"}

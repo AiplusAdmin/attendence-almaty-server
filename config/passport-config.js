@@ -13,7 +13,7 @@ async function GetTeacher(email){
 		UNION SELECT "TeacherId" as UserId , "Email", "Password", "AUTH", "RoleId"
 		FROM "Teachers" WHERE "Email" = :email;`;
 		var users = await sequelize.query(query,{
-			replacements:{email: email},
+			replacements:{email: email.toLowerCase()},
 			type: QueryTypes.SELECT
 		});
 		if(users.length == 1)
