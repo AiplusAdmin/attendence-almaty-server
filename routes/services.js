@@ -11,7 +11,6 @@ const QueueBot = require('smart-request-balancer');
 
 const verifyToken = require('../scripts/verifyToken');
 const generateKey = require('../scripts/generateKeys');
-const Queue = require('../scripts/queue');
 const api = require('../api/api');
 const Registers = require('../modules/Registers');
 const SubRegisters = require('../modules/SubRegisters');
@@ -76,6 +75,12 @@ function Weekday(date){
     var day = new Date(date);
 
     return weekdays[day.getDay()];
+}
+
+function sleep(ms){
+    return new Promise(resolve=>{
+        setTimeout(resolve,ms)
+    });
 }
 
 //Get Offices
@@ -286,45 +291,55 @@ router.post('/setpasses',verifyToken, (req, res) => {
 });
 
 //add attendence test
-router.post('/setattendence',verifyToken, (req, res) => {
+router.post('/setattendence',verifyToken, async (req, res) => {
     var date = req.body.date;
     var groupId = req.body.groupId;
-    var students = req.body.students;
-	var queue = new Queue();
+	var students = req.body.students;
 	try{
-		var response = null;
-		students.map(async function(student){
-			if(student.attendence && student.clientId != -1 && !student.status){
-				var comment = '';
-				var data = new Object();
-				data.edUnitId = groupId;
-				data.studentClientId = student.clientid;
-				data.date = date;
-				data.testTypeId = 339;
-				var skills = new Array();
-				var skill = new Object();
-				skill.skillId = 29; // Оценка учителя
-				skill.score = student.homework;
-				skills.push(skill);
-				skill = new Object();
-				skill.skillId = 33; // Срез
-				skill.score = student.test;
-				skills.push(skill);
-				skill = new Object();
-				skill.skillId = 34; // Ранг
-				skill.score = student.lesson;
-				skills.push(skill);
-				data.skills = skills;
-				if(student.comment){
-					student.comment.map(function(com){
-						comment+=com+'\n';
-					});
+		var responses = [];
+		await students.reduce(async function(previousPromise,student){
+			var res = await previousPromise;
+			responses.push(res);
+			return new Promise(async function(resolve,reject){
+				if(student.attendence && student.clientid != -1 && !student.status){
+					var comment = '';
+					var data = new Object();
+					data.edUnitId = groupId;
+					data.studentClientId = student.clientid;
+					data.date = date;
+					data.testTypeId = 339;
+					var skills = new Array();
+					var skill = new Object();
+					skill.skillId = 29; // Оценка учителя
+					skill.score = student.homework;
+					skills.push(skill);
+					skill = new Object();
+					skill.skillId = 33; // Срез
+					skill.score = student.test;
+					skills.push(skill);
+					skill = new Object();
+					skill.skillId = 34; // Ранг
+					skill.score = student.lesson;
+					skills.push(skill);
+					data.skills = skills;
+					if(student.comment){
+						student.comment.map(function(com){
+							comment+=com+'\n';
+						});
+					}
+					data.commentHtml = comment;
+					var response = await api.post(key.domain,'AddEditEdUnitTestResult',data,key.apikey);
+					if(response.status == 200)
+						resolve(true);
+					else
+						reject(false);
+				} else {
+					resolve(true);
 				}
-				data.commentHtml = comment;
-				response = await queue.add(data);
-			}
-		});
-		if(response){
+			});
+		},Promise.resolve(true));
+		var result = responses.every(elem => elem == true);
+		if(result){
 			res.json({
 				status: 200,
 				message: 'OK'
