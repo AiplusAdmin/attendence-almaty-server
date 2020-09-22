@@ -885,12 +885,14 @@ router.get('/getdayregisters',async(req,res) => {
 		var date = new Date(req.query.date);
 
 		const query = `SELECT reg."Id", reg."GroupName", reg."Time", reg."LessonDate", reg."WeekDays",
-			reg."SubmitDay", reg."SubmitTime", concat(teach."LastName",' ',teach."FirstName") as "FullName", COUNT(subreg."Id") as "All"
+			reg."SubmitDay", reg."SubmitTime", concat(teach."LastName",' ',teach."FirstName") as "FullName",
+			COUNT(subreg."Id") as "All", sch."Name"
 			FROM public."Registers" as reg
 			LEFT JOIN public."Teachers" as teach ON reg."TeacherId" = teach."TeacherId"
 			LEFT JOIN public."SubRegisters" as subreg ON reg."Id" = subreg."RegisterId" AND subreg."Pass" = true
+			LEFT JOIN public."Schools" as sch ON reg."SchoolId" = sch."SchoolId"
 			WHERE reg."LessonDate" = :date
-			GROUP BY reg."Id",teach."LastName",teach."FirstName";`
+			GROUP BY reg."Id",teach."LastName",teach."FirstName",sch."Name";`
 		var registers = await sequelize.query(query,{
 			replacements:{date: date},
 			type: QueryTypes.SELECT
