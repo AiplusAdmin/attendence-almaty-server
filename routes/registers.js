@@ -6,7 +6,7 @@ const Registers = require('../modules/Registers');
 
 //add
 router.post('/', async (req,res) => {
-	var { TeacherId, GroupId, GroupName, Time, LessonDate, WeekDays, SubmitDay, SubmitTime, IsSubmitted, IsStudentAdd, IsOperator } = req.body;
+	var { TeacherId, GroupId, GroupName, Time, LessonDate, WeekDays, SubmitDay, SubmitTime, IsSubmitted, IsStudentAdd, IsOperator,SchoolId } = req.body;
 	try{
 		var newRegister = await Registes.create({
 			TeacherId,
@@ -19,9 +19,10 @@ router.post('/', async (req,res) => {
 			SubmitTime,
 			IsSubmitted,
 			IsStudentAdd,
-			IsOperator		
+			IsOperator,
+			SchoolId
 		},{
-			fields:['TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator']
+			fields:['TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator','SchoolId']
 		});
 		if(newRegister){
 			res.json({
@@ -47,10 +48,10 @@ router.post('/', async (req,res) => {
 //update
 router.put('/:Id',async (req,res) => {
 	const {Id} = req.params;
-	const { TeacherId, GroupId, GroupName, Time, LessonDate, WeekDays, SubmitDay, SubmitTime, IsSubmitted, IsStudentAdd, IsOperator } = req.body;
+	const { TeacherId, GroupId, GroupName, Time, LessonDate, WeekDays, SubmitDay, SubmitTime, IsSubmitted, IsStudentAdd, IsOperator,SchoolId } = req.body;
 	try{
 		var registers = await Contacts.findAll({
-			fields:['TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator'],
+			fields:['TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator','SchoolId'],
 			where: {
 				Id
 			}
@@ -68,7 +69,8 @@ router.put('/:Id',async (req,res) => {
 					SubmitTime: SubmitTime ? SubmitTime : register.SubmitTime,
 					IsSubmitted: IsSubmitted ? IsSubmitted : register.IsSubmitted,
 					IsStudentAdd: IsStudentAdd ? IsStudentAdd : register.IsStudentAdd,
-					IsOperator: IsOperator ? IsOperator : register.IsOperator
+					IsOperator: IsOperator ? IsOperator : register.IsOperator,
+					SchoolId: SchoolId ? SchoolId : register.SchoolId
 				});	
 			});
 			res.json({

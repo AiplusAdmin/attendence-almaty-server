@@ -45,6 +45,9 @@ const Registers = sequelize.define('Registers',{
 	},
 	updatedAt:{
 		type: Sequelize.DATE
+	},
+	SchoolId:{
+		type: Sequelize.INTEGER
 	}
 });
 

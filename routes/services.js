@@ -18,6 +18,7 @@ const sequelize = require('../databases/index').sequelize;
 const Teachers = require('../modules/Teachers');
 const Contacts = require('../modules/Contacts');
 const Students = require('../modules/Students');
+const Schools = require('../modules/Schools')
 const sendMail = require('../scripts/gmail');
 const bot = require('../bot/createBot');
 const botUtils = require('../bot/botUtils');
@@ -393,6 +394,7 @@ router.post('/addregister',verifyToken,async (req,res) => {
 		var IsSubmitted = req.body.isSubmitted;
 		var IsStudentAdd = req.body.group.isStudentAdd ? req.body.group.isStudentAdd:false;
 		var IsOperator = req.body.group.isOperator ? req.body.group.isOperator:false;
+		var SchoolId = req.body.group.officeId;
 		var newRegister = await Registers.create({
 				TeacherId,
 				GroupId,
@@ -404,9 +406,10 @@ router.post('/addregister',verifyToken,async (req,res) => {
 				SubmitTime,
 				IsSubmitted,
 				IsStudentAdd,
-				IsOperator		
+				IsOperator,
+				SchoolId	
 			},{
-				fields:['TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator']
+				fields:['TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator','SchoolId']
 		});
 		if(newRegister){
 			var promise = req.body.students.map(async function(student){
@@ -466,7 +469,7 @@ router.post('/addregister',verifyToken,async (req,res) => {
 
 router.post('/addstudentexample', (req, res) => {
 	var params = "statuses="+encodeURIComponent('АДАПТАЦИОННЫЙ ПЕРИОД,Занимается,Заморозка,Регистрация,Онлайн обучение');
-	api.get('aiplus','GetStudents',params,'VdqvXSXu%2Fq1DWiLefLBUihGMn7MHlvSP59HIHoHH7%2BLEtHB5dtznB6sqyJIPjH5w')
+	api.get(key.domain,'GetStudents',params,key.apikey)
 	.then((data) => {
         data.data.map(async function(record){
 			try{
@@ -498,52 +501,110 @@ router.post('/addstudentexample', (req, res) => {
     });
 });
 
-router.post('/sendmessagetelegram',(req,res) => {
-	var text = '';
-	var url = 'https://aiplus.t8s.ru/Learner/Group/';
-	var ok = false;
-	var arrbtn = new Array();
-	if(req.body.group.change){
-		url += req.body.group.Id;
-		ok = true;
-		text+='Была замена : \n Заменяющий преподаватель: ' + req.body.teacherName + '\nЗаменяемый преподаватель: ' + req.body.group.teacher + '\n Дата замены: '+ req.body.group.date +'\nгруппа: Id: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n\n';
-	}
-	if(req.body.group.isOperator){
-		if(!ok)
-			url += req.body.group.Id;
-		req.body.students.map(async student => {
-			if(student.status && student.clientid == -1){
-				text += 'Найти и добавить ученика в группу\n Ученик: ' + student.name + ' в группу: Id: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n';
-				var com = student.comment?student.comment:'';
-				text += 'Аттендансе студента :\nФИО : ' + student.name + '\nД/з: ' + student.homework + '\nСрез: ' + student.test+'\nРанг: ' + student.lesson+'\nКомментарии: ' + com+'\n\n\n';
-			}
-			if(student.status){
-				var studentId = await Students.findOne({
-					attributes: ['StudentId'],
+router.post('/addofficeexample', (req, res) => {
+	api.get(key.domain,'GetOffices','',key.apikey)
+	.then((data) => {
+        data.data.map(async function(record){
+			try{
+				var school = await Schools.findOne({
+					attributes: ['SchoolId'],
 					where:{
-						ClientId: student.clientid
+						SchoolId: record.Id
 					}
 				});
-
-				text += 'Добавить Ученика: ' + student.name + ' в группу: \nId: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n';
-				var com = student.comment?student.comment:'';
-				text += 'Аттендансе студента :\nId: '+studentId+'\nФИО : ' + student.name + '\nД/з: ' + student.homework + '\nСрез: ' + student.test+'\nРанг: ' + student.lesson+'\nКомментарии: ' + com+'\n\n\n';
+				if(school === null){
+					console.log('Record',record);
+					var newSchool = await Schools.create({
+						Name: record.Name,
+						Address: record.Address,
+						SchoolId: record.Id
+					},{
+						fields: ['Name','Address','SchoolId']
+					});
+					console.log('Добавили');
+				} else {
+					console.log('Есть');
+				}
+			}catch(error){
+				console.log(error);
 			}
-		});
-	}
+        });
+        res.send("ok");
+    });
+});
 
-	queueBot.request((retry) => bot.telegram.sendMessage('-386513940',text,botUtils.buildUrlButton('Ссылка на группу',url))
+router.post('/sendmessagetelegram',(req,res) => {
+	var text = '';
+	var url = 'https://aiplus.t8s.ru/Learner/Group/'+req.body.group.Id;
+	if(req.body.group.change){
+		text+='Была замена : \n Заменяющий преподаватель: ' + req.body.teacherName + '\nЗаменяемый преподаватель: ' + req.body.group.teacher + '\n Дата замены: '+ req.body.group.date +'\nгруппа: Id: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n\n';
+		queueBot.request((retry) => bot.telegram.sendMessage('-386513940',text,botUtils.buildUrlButton('Ссылка на группу',url))
 		.catch(error => {
 			console.log(error);
 			if (error.response.status === 429) { // We've got 429 - too many requests
 					return retry(error.response.data.parameters.retry_after) // usually 300 seconds
 			}
 			throw error; // throw error further
-	}),'-386513940','telegramGroup');
+		}),'-386513940','telegramGroup');
+	}
+	console.log(url);
+
+	if(req.body.group.isOperator){
+		req.body.students.map(async function(student){
+			text = '';
+			if(student.status && student.attendence){
+				if(student.clientid == -1){
+					text += 'Найти и добавить ученика в группу\n Ученик: ' + student.name + ' в группу: Id: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n';
+					var com = student.comment?student.comment:'';
+					text += 'Аттендансе студента :\nФИО : ' + student.name + '\nД/з: ' + student.homework + '\nСрез: ' + student.test+'\nРанг: ' + student.lesson+'\nКомментарии: ' + com+'\n\n\n';
+					queueBot.request((retry) => bot.telegram.sendMessage('-386513940',text,botUtils.buildUrlButton('Ссылка на группу',url))
+					.catch(error => {
+						console.log(error);
+						if (error.response.status === 429) { // We've got 429 - too many requests
+								return retry(error.response.data.parameters.retry_after) // usually 300 seconds
+						}
+						throw error; // throw error further
+					}),'-386513940','telegramGroup');
+				} else {
+					try{
+						var studentId = await Students.findOne({
+							attributes: ['StudentId'],
+							where:{
+								ClientId: student.clientid
+							}
+						});
+						text += 'Добавить Ученика: ' + student.name + ' в группу: \nId: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n';
+						var com = student.comment?student.comment:'';
+						text += 'Аттендансе студента :\nId: '+studentId.StudentId+'\nФИО : ' + student.name + '\nД/з: ' + student.homework + '\nСрез: ' + student.test+'\nРанг: ' + student.lesson+'\nКомментарии: ' + com+'\n\n\n';
+						queueBot.request((retry) => bot.telegram.sendMessage('-386513940',text,botUtils.buildUrlButton('Ссылка на группу',url))
+						.catch(error => {
+							console.log(error);
+							if (error.response.status === 429) { // We've got 429 - too many requests
+									return retry(error.response.data.parameters.retry_after) // usually 300 seconds
+							}
+							throw error; // throw error further
+						}),'-386513940','telegramGroup');
+					}catch(ex){
+						text += 'Добавить Ученика: ' + student.name + ' в группу: \nId: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n';
+						var com = student.comment?student.comment:'';
+						text += 'Аттендансе студента :\n'+'\nФИО : ' + student.name + '\nД/з: ' + student.homework + '\nСрез: ' + student.test+'\nРанг: ' + student.lesson+'\nКомментарии: ' + com+'\n\n\n';
+						queueBot.request((retry) => bot.telegram.sendMessage('-386513940',text,botUtils.buildUrlButton('Ссылка на группу',url))
+						.catch(error => {
+							console.log(error);
+							if (error.response.status === 429) { // We've got 429 - too many requests
+									return retry(error.response.data.parameters.retry_after) // usually 300 seconds
+							}
+							throw error; // throw error further
+						}),'-386513940','telegramGroup');
+									}	
+				}
+			}
+		});
+	}	
 });
 
 router.post('/addteacherexample', (req, res) => {
-   api.get('aiplus','GetTeachers','','VdqvXSXu%2Fq1DWiLefLBUihGMn7MHlvSP59HIHoHH7%2BLEtHB5dtznB6sqyJIPjH5w')
+   api.get(key.domain,'GetTeachers','',key.apikey)
    .then((data) => {
         data.data.map(async function(record){
 				try{
@@ -556,31 +617,34 @@ router.post('/addteacherexample', (req, res) => {
 								}
 							});
 							if(teacher === null) {
-								var newContact = await Contacts.create({
-									Mobile: record.Mobile,
-									Email: record.EMail
-								},{
-									fields:['Mobile','Email']
-								});
-								if(newContact){
-									try{
-										var email = record.EMail.toLowerCase() != undefined ? record.EMail : '';
-										var pass =  await bcrypt.hash('123456',10);
-										var auth = generateKey();
-										var newTeacher = await Teachers.create({
-											TeacherId: record.Id,
-											FirstName: record.FirstName,
-											LastName: record.LastName,
-											ContactId: newContact.Id,
-											Email: email,
-											Password: pass,
-											AUTH: auth,
-											RoleId: 2
-										},{
-											fields: ['TeacherId','FirstName','LastName','ContactId','Email','Password','AUTH','RoleId']
-										});
-									}catch(error){
-										console.log(error);
+								if(record.EMail){
+									var newContact = await Contacts.create({
+										Mobile: record.Mobile,
+										Email: record.EMail
+									},{
+										fields:['Mobile','Email']
+									});
+									if(newContact){
+										try{
+												var email = record.EMail.toLowerCase();
+												var pass =  await bcrypt.hash('123456',10);
+												var auth = generateKey();
+												var newTeacher = await Teachers.create({
+													TeacherId: record.Id,
+													FirstName: record.FirstName,
+													LastName: record.LastName,
+													ContactId: newContact.Id,
+													Email: email,
+													Password: pass,
+													AUTH: auth,
+													RoleId: 2
+												},{
+													fields: ['TeacherId','FirstName','LastName','ContactId','Email','Password','AUTH','RoleId']
+												});
+											
+										}catch(error){
+											console.log(error);
+										}
 									}
 								}
 							} else {
@@ -606,7 +670,8 @@ router.post('/registeramount',verifyToken,async (req,res) => {
 			where:{
 				[Op.and]:[
 					{GroupId: req.body.groupId},
-					{LessonDate:date}
+					{LessonDate:date},
+					{SchoolId:req.body.officeId}
 				]
 			}
 		});

@@ -19,6 +19,7 @@ const teachers = require('./routes/teachers');
 const employees = require('./routes/employees');
 const registers = require('./routes/registers');
 const subregisters = require('./routes/subregisters');
+const schools = require('./routes/schools');
 const bot = require('./bot/createBot');
 
 const app = express();
@@ -48,10 +49,11 @@ app.use('/teachers',teachers);
 app.use('/employees',employees);
 app.use('/registers',registers);
 app.use('/subregisters',subregisters);
+app.use('/schools',schools);
 app.use('/',services);
 
 //start bot
-bot.launch();
+//bot.launch();
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));

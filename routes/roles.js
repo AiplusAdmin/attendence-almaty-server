@@ -41,7 +41,7 @@ router.put('/:id',async (req,res) => {
 		var roles = await Roles.findAll({
 			attributes: ['Id', 'Name', 'createdAt', 'updatedAt'],
 			where: {
-				id
+				Id: id
 			}
 		});
 		if(roles.length > 0){
