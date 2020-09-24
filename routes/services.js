@@ -125,9 +125,9 @@ router.post('/login', async (req, res) => {
 			else 
 				exipersIn = "2h";
 			const token = jwt.sign({_id: user.teacherId}, user.authkey,{expiresIn: exipersIn});
-			
 			res.set('ACCESSTOKEN',token);
 			res.set('AUTHTOKEN',user.authkey);
+			console.log(user);
 			res.json({
 				status: 200, 
 				data: {
@@ -255,8 +255,8 @@ router.post('/student',verifyToken, async (req,res) => {
 		}
 	}catch(error){
 		res.json({
-			status: 404,
-			message: 'Ученика нет'
+			status: 500,
+			message: 'Error'
 		});
 	}
 });
@@ -292,7 +292,7 @@ router.post('/setpasses',verifyToken, (req, res) => {
 });
 
 //add attendence test
-router.post('/setattendence',verifyToken, async (req, res) => {
+router.post('/setattendence', async (req, res) => {
     var date = req.body.date;
     var groupId = req.body.groupId;
 	var students = req.body.students;
@@ -381,7 +381,7 @@ router.post('/addtogroup',verifyToken, (req, res) => {
     });
 });
 
-router.post('/addregister',verifyToken,async (req,res) => {
+router.post('/addregister',async (req,res) => {
 	try{
 		var TeacherId = req.body.teacherId;
 		var GroupId = req.body.group.Id;
@@ -547,12 +547,11 @@ router.post('/sendmessagetelegram',(req,res) => {
 			throw error; // throw error further
 		}),'-386513940','telegramGroup');
 	}
-	console.log(url);
 
 	if(req.body.group.isOperator){
 		req.body.students.map(async function(student){
-			text = '';
 			if(student.status && student.attendence){
+				text = '';
 				if(student.clientid == -1){
 					text += 'Найти и добавить ученика в группу\n Ученик: ' + student.name + ' в группу: Id: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n';
 					var com = student.comment?student.comment:'';
@@ -567,6 +566,7 @@ router.post('/sendmessagetelegram',(req,res) => {
 					}),'-386513940','telegramGroup');
 				} else {
 					try{
+						text = '';
 						var studentId = await Students.findOne({
 							attributes: ['StudentId'],
 							where:{
@@ -585,6 +585,7 @@ router.post('/sendmessagetelegram',(req,res) => {
 							throw error; // throw error further
 						}),'-386513940','telegramGroup');
 					}catch(ex){
+						text = '';
 						text += 'Добавить Ученика: ' + student.name + ' в группу: \nId: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n';
 						var com = student.comment?student.comment:'';
 						text += 'Аттендансе студента :\n'+'\nФИО : ' + student.name + '\nД/з: ' + student.homework + '\nСрез: ' + student.test+'\nРанг: ' + student.lesson+'\nКомментарии: ' + com+'\n\n\n';
@@ -670,8 +671,7 @@ router.post('/registeramount',verifyToken,async (req,res) => {
 			where:{
 				[Op.and]:[
 					{GroupId: req.body.groupId},
-					{LessonDate:date},
-					{SchoolId:req.body.officeId}
+					{LessonDate:date}				
 				]
 			}
 		});
@@ -686,6 +686,7 @@ router.post('/registeramount',verifyToken,async (req,res) => {
 				message: 'Уже заполнен'
 			});
 	}catch(error){
+		console.log(error);
 		res.send({
 			status: 500,
 			message: 'Error'
@@ -735,10 +736,10 @@ router.get('/searchteacher',verifyToken, async (req, res) => {
 			replacements:{val: val},
 			type: QueryTypes.SELECT
 		});
-		res.send(teachers);
+		res.send({status: 200,data: teachers});
 	}catch(error){
 		console.log(error);
-        res.send([]);
+        res.send({status: 500,data: []});
 	}
 });
 
@@ -751,10 +752,10 @@ router.get('/searchstudent',verifyToken, async (req, res) => {
 			replacements:{val: val},
 			type: QueryTypes.SELECT
 		});
-		res.send(students);
+		res.send({status: 200, data: students});
 	}catch(error){
 		console.log(error);
-        res.send([]);
+        res.send({status: 500,data: []});
 	}
 });
 
@@ -773,7 +774,7 @@ router.get('/subteacher',verifyToken, async (req, res) => {
 		});
 		if(teacher === null)
 			res.send({
-				status: 410,
+				status: 404,
 				message: 'Такого преподавателя нет'
 			});
 		else
@@ -804,10 +805,10 @@ router.get('/getregister',verifyToken,async (req, res) => {
 			}
 		});	
 		
-		res.send(registers);
+		res.send({status: 200, data: registers});
 	}catch(error){
 		console.log(error);
-		res.send([]);
+        res.send({status: 500,data: []});
 	}
 });
 
@@ -832,10 +833,10 @@ router.get('/getregisterdetails',verifyToken,async (req, res) => {
 			type: QueryTypes.SELECT
 		});
 
-		res.send(subregisters);
+		res.send({status: 200, data: subregisters});
 	}catch(error){
 		console.log(error);
-		res.send([]);
+        res.send({status: 500,data: []});
 	}
 });
 
@@ -847,10 +848,10 @@ router.get('/getuniqueregister',verifyToken,async (req, res) => {
 		ON registers."TeacherId" = teachers."TeacherId";`
 		var registers = await sequelize.query(query,{type: QueryTypes.SELECT});
 		
-		res.send(registers);
+		res.send({status: 200, data: registers});
 	}catch(error){
 		console.log(error);
-		res.send([]);
+        res.send({status: 500,data: []});
 	}
 });
 
@@ -873,10 +874,10 @@ router.get('/getsubregistersavg',verifyToken,async (req, res) => {
 			type: QueryTypes.SELECT
 		});
 		
-		res.send(subregisters);
+		res.send({status: 200, data: subregisters});
 	}catch(error){
 		console.log(error);
-		res.send([]);
+        res.send({status: 500,data: []});
 	}
 });
 
@@ -897,10 +898,10 @@ router.get('/getdayregisters',async(req,res) => {
 			replacements:{date: date},
 			type: QueryTypes.SELECT
 		});
-		res.send(registers);
+		res.send({status: 200, data: registers});
 	}catch(error){
 		console.log(error);
-		res.send([]);
+        res.send({status: 500,data: []});
 	}
 });
 

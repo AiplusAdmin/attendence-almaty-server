@@ -15,7 +15,7 @@ function  get(domain,method,params,api){
         })
         .catch(error => {
 			console.log("Error API class: " + error);
-            reject({status: 410,message: error.response.data});
+            reject({status: 410,message: error});
         });
     });
 }
@@ -35,7 +35,8 @@ function post(domain,method,params,api){
 			}
         })
         .catch(error => {
-            reject({status: 410,message: error.response.data});
+			console.log(error);
+            reject({status: 410,message: error});
         })
     });
 }
