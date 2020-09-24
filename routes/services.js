@@ -551,8 +551,8 @@ router.post('/sendmessagetelegram',(req,res) => {
 	if(req.body.group.isOperator){
 		req.body.students.map(async function(student){
 			if(student.status && student.attendence){
-				text = '';
 				if(student.clientid == -1){
+					text = 'Дата урока: ' + req.body.group.date+'\n\n';
 					text += 'Найти и добавить ученика в группу\n Ученик: ' + student.name + ' в группу: Id: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n';
 					var com = student.comment?student.comment:'';
 					text += 'Аттендансе студента :\nФИО : ' + student.name + '\nД/з: ' + student.homework + '\nСрез: ' + student.test+'\nРанг: ' + student.lesson+'\nКомментарии: ' + com+'\n\n\n';
@@ -566,7 +566,7 @@ router.post('/sendmessagetelegram',(req,res) => {
 					}),'-386513940','telegramGroup');
 				} else {
 					try{
-						text = '';
+						text = 'Дата урока: ' + req.body.group.date+'\n\n';
 						var studentId = await Students.findOne({
 							attributes: ['StudentId'],
 							where:{
@@ -585,7 +585,7 @@ router.post('/sendmessagetelegram',(req,res) => {
 							throw error; // throw error further
 						}),'-386513940','telegramGroup');
 					}catch(ex){
-						text = '';
+						text = 'Дата урока: ' + req.body.group.date+'\n\n';
 						text += 'Добавить Ученика: ' + student.name + ' в группу: \nId: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n';
 						var com = student.comment?student.comment:'';
 						text += 'Аттендансе студента :\n'+'\nФИО : ' + student.name + '\nД/з: ' + student.homework + '\nСрез: ' + student.test+'\nРанг: ' + student.lesson+'\nКомментарии: ' + com+'\n\n\n';
@@ -597,7 +597,7 @@ router.post('/sendmessagetelegram',(req,res) => {
 							}
 							throw error; // throw error further
 						}),'-386513940','telegramGroup');
-									}	
+					}	
 				}
 			}
 		});
