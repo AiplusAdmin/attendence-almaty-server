@@ -7,10 +7,10 @@ const verifyPassword = require('../scripts/verifyPassword');
 
 async function GetTeacher(email){
 	try{
-		const query = `SELECT "EmployeeId" as UserId , "Email", "Password", "AUTH", "RoleId"
+		const query = `SELECT "EmployeeId" as UserId , "Email", "Password", "AUTH", "RoleId","FirstName","LastName"
 		FROM "Employees" 
 		WHERE "Email" = :email
-		UNION SELECT "TeacherId" as UserId , "Email", "Password", "AUTH", "RoleId"
+		UNION SELECT "TeacherId" as UserId , "Email", "Password", "AUTH", "RoleId","FirstName","LastName"
 		FROM "Teachers" WHERE "Email" = :email;`;
 		var users = await sequelize.query(query,{
 			replacements:{email: email.toLowerCase()},
@@ -35,7 +35,7 @@ function initialize(passport){
 				if(!await verifyPassword(password,row.Password))
 					return done(null,false,{message: "Не правильный пароль"});
 				else
-					return done(null,{teacherId: row.userid,roleId: row.RoleId, authkey: row.AUTH});
+					return done(null,{teacherId: row.userid,roleId: row.RoleId, authkey: row.AUTH,firstname: row.FirstName,lastname:row.LastName});
 			}
 			else
 				return done(null,false,{message: "Такой учетной записи нет"});

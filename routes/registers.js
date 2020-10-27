@@ -1,14 +1,13 @@
 const express = require('express');
 const router = express.Router();
 
-const Registes = require('../modules/Registers');
 const Registers = require('../modules/Registers');
 
 //add
 router.post('/', async (req,res) => {
 	var { TeacherId, GroupId, GroupName, Time, LessonDate, WeekDays, SubmitDay, SubmitTime, IsSubmitted, IsStudentAdd, IsOperator,SchoolId } = req.body;
 	try{
-		var newRegister = await Registes.create({
+		var newRegister = await Registers.create({
 			TeacherId,
 			GroupId,
 			GroupName,
@@ -50,7 +49,7 @@ router.put('/:Id',async (req,res) => {
 	const {Id} = req.params;
 	const { TeacherId, GroupId, GroupName, Time, LessonDate, WeekDays, SubmitDay, SubmitTime, IsSubmitted, IsStudentAdd, IsOperator,SchoolId } = req.body;
 	try{
-		var registers = await Contacts.findAll({
+		var registers = await Registers.findAll({
 			fields:['TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator','SchoolId'],
 			where: {
 				Id

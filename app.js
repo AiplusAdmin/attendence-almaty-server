@@ -21,6 +21,7 @@ const registers = require('./routes/registers');
 const subregisters = require('./routes/subregisters');
 const schools = require('./routes/schools');
 const bot = require('./bot/createBot');
+const cron = require('./scripts/cron');
 
 const app = express();
 initializePassport(passport);
@@ -54,6 +55,8 @@ app.use('/',services);
 
 //start bot
 //bot.launch();
+//start cron
+cron.start();
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
