@@ -56,7 +56,7 @@ app.use('/',services);
 //start bot
 //bot.launch();
 //start cron
-cron.start();
+//cron.start();
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
