@@ -8,6 +8,7 @@ const { QueryTypes } = require('sequelize');
 const bcrypt = require('bcrypt');
 const uniqueRandom = require('unique-random');
 const QueueBot = require('smart-request-balancer');
+const xlsx = require('xlsx');
 
 const verifyToken = require('../scripts/verifyToken');
 const generateKey = require('../scripts/generateKeys');
@@ -18,12 +19,15 @@ const sequelize = require('../databases/index').sequelize;
 const Teachers = require('../modules/Teachers');
 const Contacts = require('../modules/Contacts');
 const Students = require('../modules/Students');
-const Schools = require('../modules/Schools')
+const Schools = require('../modules/Schools');
+const Rooms = require('../modules/Rooms');
 const sendMail = require('../scripts/gmail');
 const bot = require('../bot/createBot');
 const botUtils = require('../bot/botUtils');
 const verifyPassword = require('../scripts/verifyPassword');
 const hh = require('../scripts/hh');
+const support = require('../scripts/support');
+const { resolve } = require('bluebird');
 
 const key = {
     "domain":"aiplus",
@@ -288,6 +292,8 @@ router.post('/groups',verifyToken, (req, res) => {
 					var group = new Object();
 					group.Id = response.data[i].Id;
 					group.name = response.data[i].Name;
+					group.subject = support.subjectName(response.data[i].Name);
+					group.branch = support.getBranch(response.data[i].Name);
 					group.teacher = response.data[i].ScheduleItems[j].Teacher;
 					group.time = response.data[i].ScheduleItems[j].BeginTime + '-' + response.data[i].ScheduleItems[j].EndTime;
 					group.days = Weekdays(response.data[i].ScheduleItems[j].Weekdays);
@@ -421,12 +427,107 @@ router.post('/setpasses',verifyToken, (req, res) => {
 });
 
 //add attendence test
-router.post('/setattendence', async (req, res) => {
-    var date = req.body.date;
-    var groupId = req.body.groupId;
-	var students = req.body.students;
-	var register = req.body.register;
-	hh(date,groupId,students,register);
+router.post('/setattendence', async (req, res) => { 
+	//var register = req.body.register;
+	try{
+		var date = req.body.group.date.substr(0, 10);
+		var groupId = req.body.group.Id;
+		var students = req.body.students;
+		var TeacherId = req.body.teacherId;
+		var GroupId = req.body.group.Id;
+		var GroupName = req.body.group.name;
+		var Time = req.body.group.time;
+		var LessonDate = req.body.group.date.substr(0, 10);
+		var WeekDays = req.body.group.days;
+		var SubmitDay = req.body.submitDay.substr(0, 10);
+		var SubmitTime = req.body.submitTime;
+		var IsSubmitted = req.body.isSubmitted;
+		var IsStudentAdd = req.body.group.isStudentAdd ? req.body.group.isStudentAdd:false;
+		var IsOperator = req.body.group.isOperator ? req.body.group.isOperator:false;
+		var SchoolId = req.body.group.officeId;
+		var RoomId = req.body.group.roomId;
+		var LevelTest = req.body.group.level;
+		var newRegister = await Registers.create({
+				LevelTest,
+				RoomId,
+				TeacherId,
+				GroupId,
+				GroupName,
+				Time,
+				LessonDate,
+				WeekDays,
+				SubmitDay,
+				SubmitTime,
+				IsSubmitted,
+				IsStudentAdd,
+				IsOperator,
+				SchoolId	
+			},{
+				fields:['LevelTest','RoomId','TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator','SchoolId']
+		});
+		if(newRegister){
+			var promise = req.body.students.map(async function(student){
+				return new Promise(async function(resolve,resject){
+					try{
+						var comment = '';
+						if(!student.delete){
+							if(student.comment){
+								student.comment.map(function(com){
+									comment+=com+'\n';
+								});
+							}
+							var newSubRegisters = await SubRegisters.create({
+								RegisterId: newRegister.Id,
+								ClientId: student.clientid,
+								FullName: student.name,
+								Pass: student.attendence,
+								Homework: student.attendence?student.homework:-1,
+								Test: student.attendence?student.test:-1,
+								Lesson: student.attendence?student.lesson:-1,
+								Comment: comment,
+								Status: student.status
+							},{
+								fields:['RegisterId','ClientId','FullName','Pass','Homework','Test','Lesson','Comment','Status']
+							});
+							if(newSubRegisters){
+								resolve(true);
+							} else {
+								resolve(false);
+							}
+						}
+					}catch(err){
+						console.log(err);
+						resolve(false);
+					}
+				});
+			});
+			var responses = await Promise.all(promise);
+			var ok = responses.every(elem => elem == true);
+			if(ok){
+				new Promise(async (resolve) => {
+					await hh(date,groupId,students,newRegister);
+					console.log("Я закончил пулить в hh");
+					resolve(true);
+				});
+				console.log('Я закончил и иду дальше');
+				res.json({
+					status: 200,
+					message: 'OK'				
+				});
+			} else {
+				res.json({
+					status: 500,
+					message: 'Error'
+				});
+			}
+		}
+	}catch(error){
+		console.log(error);
+		res.json({
+			status: 500,
+			message: 'Error'
+		});
+	}
 	/*try{
 		var responses = [];
 		await students.reduce(async function(previousPromise,student){
@@ -491,7 +592,7 @@ router.post('/setattendence', async (req, res) => {
 
 });
 
-router.post('/addtogroup',verifyToken, (req, res) => {
+router.post('/addtogroup', (req, res) => {
 	var params = new Object();
 	params.edUnitId = req.body.group.Id;
     params.StudentClientId = req.body.clientId;
@@ -526,8 +627,12 @@ router.post('/addregister',async (req,res) => {
 		var IsSubmitted = req.body.isSubmitted;
 		var IsStudentAdd = req.body.group.isStudentAdd ? req.body.group.isStudentAdd:false;
 		var IsOperator = req.body.group.isOperator ? req.body.group.isOperator:false;
-		var SchoolId = req.body.group.officeId ? req.body.group.officeId:'';
+		var SchoolId = req.body.group.officeId;
+		var RoomId = req.body.group.roomId;
+		var LevelTest = req.body.group.level;
 		var newRegister = await Registers.create({
+				LevelTest,
+				RoomId,
 				TeacherId,
 				GroupId,
 				GroupName,
@@ -541,7 +646,7 @@ router.post('/addregister',async (req,res) => {
 				IsOperator,
 				SchoolId	
 			},{
-				fields:['TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator','SchoolId']
+				fields:['LevelTest','RoomId','TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator','SchoolId']
 		});
 		if(newRegister){
 			var promise = req.body.students.map(async function(student){
@@ -615,15 +720,23 @@ router.post('/addstudentexample', (req, res) => {
 						StudentId: record.Id
 					}
 				});
+				var klass = 'Нет';
+				if(record.ExtraFields){
+					record.ExtraFields.find(function(record){
+						if(record.Name == 'КЛАСС')
+							klass = record.Value;
+					});
+				}
 				if(student === null){
 					var newStudent = await Students.create({
+						Class: klass,
 						StudentId: record.Id,
 						ClientId: record.ClientId,
 						FirstName: record.FirstName,
 						LastName: record.LastName,
 						MiddleName: record.MiddleName?record.MiddleName:''
 					},{
-						fields: ['StudentId','ClientId','FirstName','LastName','MiddleName']
+						fields: ['Class','StudentId','ClientId','FirstName','LastName','MiddleName']
 					});
 					console.log(newStudent);
 				} else {
@@ -667,6 +780,41 @@ router.post('/addofficeexample', (req, res) => {
         });
         res.send("ok");
     });
+});
+
+router.post('/addroomexample', (req, res) => {
+	var workbook = xlsx.readFile('алматы кабинеты.xlsx',{cellDates: true});
+	var sheetName = workbook.SheetNames[0];
+	var worksheet = workbook.Sheets[sheetName];
+	var data = xlsx.utils.sheet_to_json(worksheet);
+	data.map(async function(record){
+		try{
+			record['Кабинеты'] = String(record['Кабинеты']);
+			console.log(record);
+			var room = await Rooms.findOne({
+				attributes: ['Id','SchoolId','Room'],
+				where:{
+					SchoolId: record['Филлал'],
+					Room: record['Кабинеты']
+				}
+			});
+			if(room === null){
+				console.log('Record',record);
+				var newRoom = await Rooms.create({
+					SchoolId: record['Филлал'],
+					Room: record['Кабинеты']
+				},{
+					fields: ['SchoolId','Room'],
+				});
+				console.log('Добавили');
+			} else {
+				console.log('Есть');
+			}
+		}catch(error){
+			console.log(error);
+		}
+	});
+	res.send('ok');
 });
 
 router.post('/sendmessagetelegram',(req,res) => {
@@ -894,7 +1042,7 @@ router.post('/editpersonal',verifyToken,async (req,res) => {
 router.get('/searchteacher',verifyToken, async (req, res) => {
 	try{
 		var val = '%'+req.query.value+'%'
-		var query = `SELECT concat("LastName",' ',"FirstName") as "FullName"
+		var query = `SELECT concat("LastName",' ',"FirstName") as "FullName", "TeacherId"
 		FROM "Teachers" WHERE "FirstName" like :val OR "LastName" like :val LIMIT 10;`;
 		var teachers = await sequelize.query(query,{
 			replacements:{val: val},
@@ -909,17 +1057,31 @@ router.get('/searchteacher',verifyToken, async (req, res) => {
 
 router.get('/searchstudent',verifyToken, async (req, res) => {
 	try{
+		
 		var arr = req.query.value.split(' ');
 		var firstname = arr[1] ? '%'+arr[1]+'%':'%%';
 		var lastname  = arr[0] ? '%'+arr[0]+'%':'%%';
 		var middlename = arr[2] ? '%'+arr[2]+'%':'%%';
-		var query = `SELECT "ClientId",concat("LastName",' ',"FirstName",' ',"MiddleName") as "FullName"
-		FROM "Students" WHERE "LastName" like :lastname AND "FirstName" like :firstname AND "MiddleName" like :middlename LIMIT 10;`;
-		var students = await sequelize.query(query,{
-			replacements:{firstname: firstname,lastname:lastname,middlename:middlename},
-			type: QueryTypes.SELECT
-		});
-		res.send({status: 200, data: students});
+		var klass = support.getClass(req.query.group);
+		var kl = klass.split('-');
+		console.log(kl);
+		if(kl.length > 1){
+			var query = `SELECT "ClientId",concat("LastName",' ',"FirstName",' ',"MiddleName") as "FullName"
+			FROM "Students" WHERE "LastName" like :lastname AND "FirstName" like :firstname AND "MiddleName" like :middlename AND ("Class" = :class1 OR "Class" = :class2) LIMIT 10;`;
+			var students = await sequelize.query(query,{
+				replacements:{firstname: firstname,lastname:lastname,middlename:middlename,class1:kl[0],class2:kl[1]},
+				type: QueryTypes.SELECT
+			});
+			res.send({status: 200, data: students});
+		}else {
+			var query = `SELECT "ClientId",concat("LastName",' ',"FirstName",' ',"MiddleName") as "FullName"
+			FROM "Students" WHERE "LastName" like :lastname AND "FirstName" like :firstname AND "MiddleName" like :middlename AND "Class" = :class LIMIT 10;`;
+			var students = await sequelize.query(query,{
+				replacements:{firstname: firstname,lastname:lastname,middlename:middlename,class:kl[0]},
+				type: QueryTypes.SELECT
+			});
+			res.send({status: 200, data: students});	
+		}
 	}catch(error){
 		console.log(error);
         res.send({status: 500,data: []});
@@ -1079,6 +1241,61 @@ router.get('/getdayregisters',async(req,res) => {
 	}catch(error){
 		console.log(error);
         res.send({status: 500,data: []});
+	}
+});
+
+router.get('/getofficerooms',async (req,res) => {
+	try{
+		var officeId = req.query.officeId;
+		var rooms = await Rooms.findAll({
+			attributes: ['Id','Room'],
+			where:{
+				SchoolId: officeId
+			}
+		});
+		if(rooms.length > 0){
+			res.send({status: 200, data: rooms});
+		} else {
+			res.send({status: 200, data: []});
+		}
+	}catch(err){
+		console.log(err);
+		res.send({status: 200, data: []});
+	}
+});
+
+router.get('/lastlessonroom',async (req,res) => {
+	try{
+		var groupId = req.query.groupId;
+
+		const query = `SELECT rom."Id",rom."Room",reg."LevelTest" FROM public."Registers" as reg
+		LEFT JOIN public."Rooms" as rom ON reg."RoomId" = rom."Id"
+		WHERE reg."LessonDate" = 
+		(
+		SELECT MAX("LessonDate")
+		FROM public."Registers" WHERE "GroupId" = :groupId
+		) LIMIT 1;`;
+		var room = await sequelize.query(query,{
+			replacements:{groupId: groupId},
+			type: QueryTypes.SELECT
+		});
+		console.log(room);
+		if(room.length > 0){
+			console.log(room);
+			var obj = {};
+			var lastroom = {};
+			lastroom.Id = room[0].Id;
+			lastroom.Room = room[0].Room;
+			obj.room = lastroom;
+			obj.level = room[0].LevelTest;
+			res.send({status: 200, data: obj});	
+		}else{
+			console.log('hey');
+			res.send({status: 404, data: null});
+		}
+	}catch(error){
+		console.log(error);
+        res.send({status: 500,data: null});
 	}
 });
 

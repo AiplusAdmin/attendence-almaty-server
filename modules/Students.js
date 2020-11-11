@@ -9,6 +9,9 @@ const Students = sequelize.define('Students',{
 		allowNull: false,
 		primaryKey: true
 	},
+	Class:{
+		type: Sequelize.STRING
+	},
 	StudentId:{
 		type: Sequelize.INTEGER
 	},

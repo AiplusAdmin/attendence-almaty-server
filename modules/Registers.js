@@ -7,6 +7,12 @@ const Registers = sequelize.define('Registers',{
 		allowNull: false,
 		primaryKey: true
 	},
+	LevelTest:{
+		type: Sequelize.STRING
+	},
+	RoomId:{
+		type: Sequelize.INTEGER
+	},
 	TeacherId:{
 		type: Sequelize.INTEGER
 	},
