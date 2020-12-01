@@ -1,5 +1,4 @@
 const LocalStrategy = require('passport-local').Strategy;
-const passport = require('passport');
 const { QueryTypes } = require('sequelize');
 
 const sequelize = require('../databases/index').sequelize;

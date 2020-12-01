@@ -1,16 +1,22 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../databases/index').sequelize;
 
-const Registers = sequelize.define('Registers',{
+const Registers = sequelize.define('Registers',{	
 	Id:{
 		type: Sequelize.BIGINT,
 		allowNull: false,
 		primaryKey: true
 	},
+	Change:{
+		type: Sequelize.BOOLEAN
+	},
 	LevelTest:{
 		type: Sequelize.STRING
 	},
 	RoomId:{
+		type: Sequelize.INTEGER
+	},
+	SubTeacherId:{
 		type: Sequelize.INTEGER
 	},
 	TeacherId:{

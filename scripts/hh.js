@@ -7,8 +7,8 @@ const botUtils = require('../bot/botUtils');
 const Registers = require('../modules/Registers');
 
 const key = {
-    "domain":"aiplus",
-    "apikey":"VdqvXSXu%2Fq1DWiLefLBUihGMn7MHlvSP59HIHoHH7%2BLEtHB5dtznB6sqyJIPjH5w"
+    "domain": process.env.DOMAIN,
+    "apikey": process.env.APIKEY
 };
 
 const queueBot = new QueueBot({
@@ -50,20 +50,20 @@ function sleep(ms){
 
 function sendTelegramIND(data,groupId,student){
 	var text = '';
-	var url = 'https://aiplus.t8s.ru/Learner/Group/'+groupId;
+	var url = `https://${process.env.DOMAIN}.t8s.ru/Learner/Group/${groupId}`;
 		
 	text = 'Дата урока: ' + data+'\n\n';
 	text += 'Найти и добавить ученика в группу\n Ученик: ' + student.FullName + ' в группу: Id: '+ groupId+'\n\n';
 	var com = student.Comment?student.Comment:'';
 	text += 'Аттендансе студента :\nФИО : ' + student.FullName + '\nД/з: ' + student.Homework + '\nСрез: ' + student.Test+'\nРанг: ' + student.Lesson+'\nКомментарии: ' + com+'\n\n\n';
-	queueBot.request((retry) => bot.telegram.sendMessage('-386513940',text,botUtils.buildUrlButton('Ссылка на группу',url))
+	queueBot.request((retry) => bot.telegram.sendMessage(process.env.OPERATOR_GROUP_CHATID,text,botUtils.buildUrlButton('Ссылка на группу',url))
 	.catch(error => {
 		console.log(error);
 		if (error.response.status === 429) { // We've got 429 - too many requests
 			return retry(error.response.data.parameters.retry_after) // usually 300 seconds
 		}
 		throw error; // throw error further
-	}),'-386513940','telegramGroup');			
+	}),process.env.OPERATOR_GROUP_CHATID,'telegramGroup');			
 }
 
 async function setPasses(data,groupId,students){
@@ -109,25 +109,23 @@ async function setGroupResult(date,groupId,students,register){
 						data.edUnitId = groupId;
 						data.studentClientId = student.clientid;
 						data.date = date;
-						data.testTypeId = 339;
+						data.testTypeId = process.env.TEST_TYPE_ID;
 						var skills = new Array();
 						var skill = new Object();
-						skill.skillId = 29; // Оценка учителя
+						skill.skillId = process.env.SCORE_TEACHER_SKILL_ID; // Оценка учителя
 						skill.score = student.homework;
 						skills.push(skill);
 						skill = new Object();
-						skill.skillId = 33; // Срез
+						skill.skillId = process.env.TEST_SKILL_ID; // Срез
 						skill.score = student.test;
 						skills.push(skill);
 						skill = new Object();
-						skill.skillId = 34; // Ранг
+						skill.skillId = process.env.RANG_SKILL_ID; // Ранг
 						skill.score = student.lesson;
 						skills.push(skill);
 						data.skills = skills;
 						if(student.comment){
-							student.comment.map(function(com){
-								comment+=com+'\n';
-							});
+							comment=student.comment.join('\n');
 						}
 						data.commentHtml = comment;
 						var response = await api.post(key.domain,'AddEditEdUnitTestResult',data,key.apikey);

@@ -21,17 +21,18 @@ const Contacts = require('../modules/Contacts');
 const Students = require('../modules/Students');
 const Schools = require('../modules/Schools');
 const Rooms = require('../modules/Rooms');
+const TelegramStudents = require('../modules/TelegramStudents');
+const Aibukcs = require('../modules/Aibucks');
 const sendMail = require('../scripts/gmail');
 const bot = require('../bot/createBot');
 const botUtils = require('../bot/botUtils');
 const verifyPassword = require('../scripts/verifyPassword');
 const hh = require('../scripts/hh');
 const support = require('../scripts/support');
-const { resolve } = require('bluebird');
 
 const key = {
-    "domain":"aiplus",
-    "apikey":"VdqvXSXu%2Fq1DWiLefLBUihGMn7MHlvSP59HIHoHH7%2BLEtHB5dtznB6sqyJIPjH5w"
+    "domain": process.env.DOMAIN,
+    "apikey": process.env.APIKEY
 };
 
 const queueBot = new QueueBot({
@@ -227,9 +228,10 @@ router.post('/teacher',verifyToken,(req, res) => {
         });
 });
 
-
+//Log In to System
 router.post('/login', async (req, res) => {
 	var remember = req.body.remember;
+	
 	passport.authenticate('local',(err,user,info) => {
 		if(err)
 			res.send({status: 400,message: 'Error'});
@@ -330,21 +332,72 @@ router.post('/groupstudents',verifyToken, (req, res) => {
 	} else {
 		var params = 'edUnitId=' + req.body.groupId;
 		api.get(key.domain,'GetEdUnitStudents',params,key.apikey)
-			.then((response) => {
+			.then(async (response) => {
 				if(response.status === 200){
 					var students = new Array();
-					response.data.map((student) => {
-						if((student.StudyUnits == undefined && student.BeginDate <= req.body.date) || student.EndDate >= req.body.date){
-							var obj = new Object();
-							obj.clientid = student.StudentClientId;
-							obj.name = student.StudentName;
-							obj.status = false;
-							obj.attendence = false;
-							obj.aibaks = 0;
-							obj.icon = 'mdi-close-thick';
-							students.push(obj);
-						}
-					});
+					var groupName = response.data[0]?support.getSubject(response.data[0].EdUnitName):null;
+					console.log(groupName);
+					
+					await response.data.reduce(async (previousPromise,student) => {
+						await previousPromise;
+						return new Promise(async function(resolve,reject){
+							if((student.StudyUnits == undefined && student.BeginDate <= req.body.date) || student.EndDate >= req.body.date){
+								var obj = new Object();
+								obj.clientid = student.StudentClientId;
+								obj.name = student.StudentName;
+								obj.status = false;
+								obj.attendence = false;
+								obj.aibaks = 0;
+								obj.icon = 'mdi-close-thick';
+								
+								var hh = await api.get(key.domain,'GetStudents','clientId='+student.StudentClientId,key.apikey);
+								var fields = hh.data[0].ExtraFields?hh.data[0].ExtraFields:[];
+								obj.dynamics = [];
+								fields.map(field => {
+									if(field.Name == 'Статус рейтинга')
+										obj.loyalty = field.Value == 'Потенциальный возврат'?0:field.Value == 'ТОП'?2:1;
+									if(field.Name == 'Мат динамика' || field.Name == 'Англ динамика' || field.Name == 'Каз динамика' || field.Name == 'Рус динамика'){
+										var object = {};
+										switch(field.Name){
+											case 'Мат динамика':
+												object.Name = 'M';
+												break;
+											case 'Англ динамика':
+												object.Name = 'E';
+												break;
+											case 'Каз динамика':
+												object.Name = 'K';
+												break;
+											case 'Рус динамика':
+												object.Name = 'R';
+												break;
+										}
+										
+										if(groupName == object.Name){
+											object.Value = Math.round((Math.abs(field.Value) + Number.EPSILON) * 100) / 100;
+											if(field.Value > 0){
+												object.progress = 'mdi-arrow-up';
+											} else {
+												object.progress = 'mdi-arrow-down';
+											}
+										}
+										obj.dynamics.push(object);
+									}
+								});
+								obj.dynamics.sort(function(a){
+									if(a.Value)
+										return -1;
+									
+									return 0;
+								});
+								console.log(obj.dynamics);
+								students.push(obj); 
+							}
+							resolve(true);
+						});
+					},Promise.resolve(true));
+
+					console.log('Закончили');
 					res.send({
 						status: 200,
 						data: students
@@ -428,12 +481,11 @@ router.post('/setpasses',verifyToken, (req, res) => {
 
 //add attendence test
 router.post('/setattendence', async (req, res) => { 
-	//var register = req.body.register;
 	try{
-		var date = req.body.group.date.substr(0, 10);
-		var groupId = req.body.group.Id;
 		var students = req.body.students;
-		var TeacherId = req.body.teacherId;
+		var TeacherId = req.body.group.teacherId;
+		var SubTeacherId = req.body.group.subteacherId;
+		var Change = req.body.group.change;
 		var GroupId = req.body.group.Id;
 		var GroupName = req.body.group.name;
 		var Time = req.body.group.time;
@@ -447,9 +499,12 @@ router.post('/setattendence', async (req, res) => {
 		var SchoolId = req.body.group.officeId;
 		var RoomId = req.body.group.roomId;
 		var LevelTest = req.body.group.level;
+		
 		var newRegister = await Registers.create({
+				Change,
 				LevelTest,
 				RoomId,
+				SubTeacherId,
 				TeacherId,
 				GroupId,
 				GroupName,
@@ -463,63 +518,58 @@ router.post('/setattendence', async (req, res) => {
 				IsOperator,
 				SchoolId	
 			},{
-				fields:['LevelTest','RoomId','TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator','SchoolId']
+				fields:['Change','LevelTest','RoomId','SubTeacherId','TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator','SchoolId']
 		});
-		if(newRegister){
-			var promise = req.body.students.map(async function(student){
-				return new Promise(async function(resolve,resject){
+		if(newRegister){ 
+			var subregisters = students.map(function(student){
+				if(!student.delete){
+					var obj = {};
+					var comment = '';
+					if(student.comment){
+						comment = student.comment.join('\n');
+					}
+					obj.RegisterId = newRegister.Id;
+					obj.ClientId = student.clientid;
+					obj.FullName = student.name;
+					obj.Pass = student.attendence;
+					obj.Homework = student.attendence?student.homework:-1;
+					obj.Test = student.attendence?student.test:-1;
+					obj.Lesson = student.attendence?student.lesson:-1;
+					obj.Comment = comment;
+					obj.Status = student.status;
+	
+					return obj;
+				}
+			});
+			var result = await SubRegisters.bulkCreate(subregisters,{
+				fields:['RegisterId','ClientId','FullName','Pass','Homework','Test','Lesson','Comment','Status']
+			});
+			if(result.length > 0){
+				new Promise(async (resolve) => {
 					try{
-						var comment = '';
-						if(!student.delete){
-							if(student.comment){
-								student.comment.map(function(com){
-									comment+=com+'\n';
-								});
-							}
-							var newSubRegisters = await SubRegisters.create({
-								RegisterId: newRegister.Id,
-								ClientId: student.clientid,
-								FullName: student.name,
-								Pass: student.attendence,
-								Homework: student.attendence?student.homework:-1,
-								Test: student.attendence?student.test:-1,
-								Lesson: student.attendence?student.lesson:-1,
-								Comment: comment,
-								Status: student.status
-							},{
-								fields:['RegisterId','ClientId','FullName','Pass','Homework','Test','Lesson','Comment','Status']
-							});
-							if(newSubRegisters){
-								resolve(true);
-							} else {
-								resolve(false);
-							}
-						}
+						await hh(LessonDate,GroupId,students,newRegister);
+						console.log('закончил');
+						resolve(true);
 					}catch(err){
 						console.log(err);
-						resolve(false);
+						resolve(true);
 					}
 				});
-			});
-			var responses = await Promise.all(promise);
-			var ok = responses.every(elem => elem == true);
-			if(ok){
-				new Promise(async (resolve) => {
-					await hh(date,groupId,students,newRegister);
-					console.log("Я закончил пулить в hh");
-					resolve(true);
-				});
-				console.log('Я закончил и иду дальше');
 				res.json({
 					status: 200,
 					message: 'OK'				
 				});
-			} else {
+			}else {
 				res.json({
 					status: 500,
 					message: 'Error'
 				});
 			}
+		}else {
+			res.json({
+				status: 500,
+				message: 'Error'
+			});
 		}
 	}catch(error){
 		console.log(error);
@@ -687,6 +737,12 @@ router.post('/addregister',async (req,res) => {
 			var responses = await Promise.all(promise);
 			var ok = responses.every(elem => elem == true);
 			if(ok){
+				new Promise(async (resolve) => {
+					await hh(date,groupId,students,newRegister);
+					console.log("Я закончил пулить в hh");
+					resolve(true);
+				});
+
 				res.json({
 					status: 200,
 					message: 'OK',
@@ -819,45 +875,45 @@ router.post('/addroomexample', (req, res) => {
 
 router.post('/sendmessagetelegram',(req,res) => {
 	var text = '';
-	var url = 'https://aiplus.t8s.ru/Learner/Group/'+req.body.group.Id;
+	var url = `https://${process.env.DOMAIN}.t8s.ru/Learner/Group/${req.body.group.Id}`;
 	if(req.body.group.change){
 		text+='Была замена : \n Заменяющий преподаватель: ' + req.body.teacherName + '\nЗаменяемый преподаватель: ' + req.body.group.teacher + '\n Дата замены: '+ req.body.group.date +'\nгруппа: Id: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n\n';
-		queueBot.request((retry) => bot.telegram.sendMessage('-386513940',text,botUtils.buildUrlButton('Ссылка на группу',url))
+		queueBot.request((retry) => bot.telegram.sendMessage(process.env.OPERATOR_GROUP_CHATID,text,botUtils.buildUrlButton('Ссылка на группу',url))
 		.catch(error => {
 			console.log(error);
 			if (error.response.status === 429) { // We've got 429 - too many requests
 					return retry(error.response.data.parameters.retry_after) // usually 300 seconds
 			}
 			throw error; // throw error further
-		}),'-386513940','telegramGroup');
+		}),process.env.OPERATOR_GROUP_CHATID,'telegramGroup');
 	}
 
 	req.body.students.map(async function(student){
 		if(student.delete){
 			text = 'Дата урока: ' + req.body.group.date+'\n\n';
 			text += 'Убрать ученик с группы\n Ученик: ' + student.name + ' с группы: Id: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n';
-			queueBot.request((retry) => bot.telegram.sendMessage('-386513940',text,botUtils.buildUrlButton('Ссылка на группу',url))
+			queueBot.request((retry) => bot.telegram.sendMessage(process.env.OPERATOR_GROUP_CHATID,text,botUtils.buildUrlButton('Ссылка на группу',url))
 			.catch(error => {
 				console.log(error);
 				if (error.response.status === 429) { // We've got 429 - too many requests
 						return retry(error.response.data.parameters.retry_after) // usually 300 seconds
 				}
 				throw error; // throw error further
-			}),'-386513940','telegramGroup');
+			}),process.env.OPERATOR_GROUP_CHATID,'telegramGroup');
 		}else if(student.status && student.attendence){
 			
 			text = 'Дата урока: ' + req.body.group.date+'\n\n';
 			text += 'Найти и добавить ученика в группу\n Ученик: ' + student.name + ' в группу: Id: '+ req.body.group.Id + '\nГруппа: '+ req.body.group.name+'\nПреподаватель: '+req.body.group.teacher+'\nВремя: ' + req.body.group.time + '\nДни: '+ req.body.group.days+ '\n\n';
 			var com = student.comment?student.comment:'';
 			text += 'Аттендансе студента :\nФИО : ' + student.name + '\nД/з: ' + student.homework + '\nСрез: ' + student.test+'\nРанг: ' + student.lesson+'\nКомментарии: ' + com+'\n\n\n';
-			queueBot.request((retry) => bot.telegram.sendMessage('-386513940',text,botUtils.buildUrlButton('Ссылка на группу',url))
+			queueBot.request((retry) => bot.telegram.sendMessage(process.env.OPERATOR_GROUP_CHATID,text,botUtils.buildUrlButton('Ссылка на группу',url))
 			.catch(error => {
 				console.log(error);
 				if (error.response.status === 429) { // We've got 429 - too many requests
 					return retry(error.response.data.parameters.retry_after) // usually 300 seconds
 				}
 				throw error; // throw error further
-			}),'-386513940','telegramGroup');
+			}),process.env.OPERATOR_GROUP_CHATID,'telegramGroup');
 
 		}
 	});
@@ -968,6 +1024,7 @@ router.post('/sendmail',verifyToken, async(req,res) => {
 			var mailOptions = {
 				from: 'aiplus.almaty@gmail.com',
 				to: teacher[0].Email,
+				cc: process.env.CC_MAIL,
 				subject : 'Замена преподавателя',
 				text: 'Никому не говорите : ' + code
 			}

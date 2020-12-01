@@ -1,4 +1,6 @@
+require('dotenv').config();
 require('./config/passport-config');
+
 
 const createError = require('http-errors');
 const express = require('express');

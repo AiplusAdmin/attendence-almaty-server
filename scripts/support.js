@@ -184,12 +184,19 @@ function getBranch(subject){
 function getClass(subject){
 	var gr = subject.split('.');
 	var klass = gr[0] == 'IND' ? gr[2]:gr[1] == 'N'?gr[2]:gr[1];
-
 	return klass;
+}
+
+function getSubject(subject){
+	var gr = subject.split('.');
+	var subject = gr[0] == 'IND' ? gr[1]:gr[0];
+
+	return subject;
 }
 
 module.exports = {
 	subjectName,
 	getBranch,
-	getClass
+	getClass,
+	getSubject
 }
