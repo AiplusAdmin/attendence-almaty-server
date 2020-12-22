@@ -126,7 +126,10 @@ async function setGroupResult(date,groupId,students,register){
 						data.skills = skills;
 						if(student.comment){
 							comment=student.comment.join('\n');
-						}
+					//		comment += '\n\n' + homework;
+						} /*else {
+							comment = homework;
+						}*/
 						data.commentHtml = comment;
 						var response = await api.post(key.domain,'AddEditEdUnitTestResult',data,key.apikey);
 						if(response.status == 200)

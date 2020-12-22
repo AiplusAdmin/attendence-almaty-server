@@ -1,22 +1,22 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../databases/index').sequelize;
 
-const TelegramStudents = sequelize.define('TelegramStudents',{
+const Tests = sequelize.define('Tests',{
 	Id:{
 		type: Sequelize.INTEGER,
 		allowNull: false,
 		primaryKey: true
 	},
-	ClientId:{
+	SubjectId:{
 		type: Sequelize.INTEGER,
 		allowNull: false
 	},
-	RoleId:{
+	MinScore:{
 		type: Sequelize.INTEGER,
 		allowNull: false
 	},
-	ChatId:{
-		type: Sequelize.STRING,
+	MaxScore:{
+		type: Sequelize.INTEGER,
 		allowNull: false
 	},
 	createdAt:{
@@ -24,7 +24,11 @@ const TelegramStudents = sequelize.define('TelegramStudents',{
 	},
 	updatedAt:{
 		type: Sequelize.DATE
+	},
+	TestId:{
+		type: Sequelize.INTEGER,
+		allowNull: false
 	}
 });
 
-module.exports = TelegramStudents;
+module.exports = Tests;

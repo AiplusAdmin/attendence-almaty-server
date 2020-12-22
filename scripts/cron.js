@@ -6,8 +6,8 @@ const Promise = require('bluebird');
 const QueueBot = require('smart-request-balancer');
 
 const key = {
-    "domain":"aiplus",
-    "apikey":"VdqvXSXu%2Fq1DWiLefLBUihGMn7MHlvSP59HIHoHH7%2BLEtHB5dtznB6sqyJIPjH5w"
+    "domain": process.env.DOMAIN,
+    "apikey": process.env.APIKEY
 };
 
 const bot = require('../bot/createBot');
@@ -52,7 +52,7 @@ function sleep(ms){
 
 function sendTelegram(register,subregister){
 	var text = '';
-	var url = 'https://aiplus.t8s.ru/Learner/Group/'+register.GroupId;
+	var url = 'https://'+process.env.DOMAIN+'.t8s.ru/Learner/Group/'+register.GroupId;
 
 		subregister.map(async function(student){
 			if(student.Status && student.Pass){
@@ -61,27 +61,27 @@ function sendTelegram(register,subregister){
 					text += 'Найти и добавить ученика в группу\n Ученик: ' + student.FullName + ' в группу: Id: '+ register.GroupId + '\nГруппа: '+ register.GroupName+'\nПреподаватель: '+register.TeacherId+'\nВремя: ' + register.Time + '\nДни: '+ register.WeekDays+ '\n\n';
 					var com = student.Comment?student.Comment:'';
 					text += 'Аттендансе студента :\nФИО : ' + student.FullName + '\nД/з: ' + student.Homework + '\nСрез: ' + student.Test+'\nРанг: ' + student.Lesson+'\nКомментарии: ' + com+'\n\n\n';
-					queueBot.request((retry) => bot.telegram.sendMessage('-386513940',text,botUtils.buildUrlButton('Ссылка на группу',url))
+					queueBot.request((retry) => bot.telegram.sendMessage(process.env.OPERATOR_GROUP_CHATID,text,botUtils.buildUrlButton('Ссылка на группу',url))
 					.catch(error => {
 						console.log(error);
 						if (error.response.status === 429) { // We've got 429 - too many requests
 								return retry(error.response.data.parameters.retry_after) // usually 300 seconds
 						}
 						throw error; // throw error further
-					}),'-386513940','telegramGroup');
+					}),process.env.OPERATOR_GROUP_CHATID,'telegramGroup');
 				} else {
 						text = 'Дата урока: ' + register.LessonDate+'\n\n';
 						text += 'Добавить Ученика: ' + student.FullName + ' в группу: Id: '+ register.GroupId + '\nГруппа: '+ register.GroupName+'\nПреподаватель: '+register.TeacherId+'\nВремя: ' + register.Time + '\nДни: '+ register.WeekDays+ '\n\n';
 						var com = student.Comment?student.Comment:'';
 						text += 'Аттендансе студента :\nФИО : ' + student.FullName + '\nД/з: ' + student.Homework + '\nСрез: ' + student.Test+'\nРанг: ' + student.Lesson+'\nКомментарии: ' + com+'\n\n\n';
-						queueBot.request((retry) => bot.telegram.sendMessage('-386513940',text,botUtils.buildUrlButton('Ссылка на группу',url))
+						queueBot.request((retry) => bot.telegram.sendMessage(process.env.OPERATOR_GROUP_CHATID,text,botUtils.buildUrlButton('Ссылка на группу',url))
 						.catch(error => {
 							console.log(error);
 							if (error.response.status === 429) { // We've got 429 - too many requests
 									return retry(error.response.data.parameters.retry_after) // usually 300 seconds
 							}
 							throw error; // throw error further
-						}),'-386513940','telegramGroup');
+						}),process.env.OPERATOR_GROUP_CHATID,'telegramGroup');
 				}
 			}
 		});
@@ -89,21 +89,21 @@ function sendTelegram(register,subregister){
 
 function sendTelegramIND(register,student){
 	var text = '';
-	var url = 'https://aiplus.t8s.ru/Learner/Group/'+register.GroupId;
+	var url = 'https://'+process.env.DOMAIN+'.t8s.ru/Learner/Group/'+register.GroupId;
 
 		
 	text = 'Дата урока: ' + register.LessonDate+'\n\n';
 	text += 'Найти и добавить ученика в группу\n Ученик: ' + student.FullName + ' в группу: Id: '+ register.GroupId + '\nГруппа: '+ register.GroupName+'\nПреподаватель: '+register.TeacherId+'\nВремя: ' + register.Time + '\nДни: '+ register.WeekDays+ '\n\n';
 					var com = student.Comment?student.Comment:'';
 					text += 'Аттендансе студента :\nФИО : ' + student.FullName + '\nД/з: ' + student.Homework + '\nСрез: ' + student.Test+'\nРанг: ' + student.Lesson+'\nКомментарии: ' + com+'\n\n\n';
-					queueBot.request((retry) => bot.telegram.sendMessage('-386513940',text,botUtils.buildUrlButton('Ссылка на группу',url))
+					queueBot.request((retry) => bot.telegram.sendMessage(process.env.OPERATOR_GROUP_CHATID,text,botUtils.buildUrlButton('Ссылка на группу',url))
 					.catch(error => {
 						console.log(error);
 						if (error.response.status === 429) { // We've got 429 - too many requests
 								return retry(error.response.data.parameters.retry_after) // usually 300 seconds
 						}
 						throw error; // throw error further
-					}),'-386513940','telegramGroup');
+					}),process.env.OPERATOR_GROUP_CHATID,'telegramGroup');
 				
 }
 
@@ -160,18 +160,18 @@ var crontohh = cron.schedule('50 23 * * *',async () => {
 										data.edUnitId = register.GroupId;
 										data.studentClientId = student.ClientId;
 										data.date = register.LessonDate;
-										data.testTypeId = 339;
+										data.testTypeId = process.env.TEST_TYPE_ID;
 										var skills = new Array();
 										var skill = new Object();
-										skill.skillId = 29; // Оценка учителя
+										skill.skillId = process.env.SCORE_TEACHER_SKILL_ID; // Оценка учителя
 										skill.score = student.Homework;
 										skills.push(skill);
 										skill = new Object();
-										skill.skillId = 33; // Срез
+										skill.skillId = process.env.TEST_SKILL_ID; // Срез
 										skill.score = student.Test;
 										skills.push(skill);
 										skill = new Object();
-										skill.skillId = 34; // Ранг
+										skill.skillId = process.env.RANG_SKILL_ID; // Ранг
 										skill.score = student.Lesson;
 										skills.push(skill);
 										data.skills = skills;

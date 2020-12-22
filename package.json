@@ -18,6 +18,7 @@
     "express": "~4.16.1",
     "express-flash": "0.0.2",
     "express-session": "^1.17.1",
+    "hashmap": "^2.4.0",
     "http-errors": "~1.6.3",
     "intel": "^1.2.0",
     "jsonwebtoken": "^8.5.1",

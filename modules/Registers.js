@@ -60,6 +60,9 @@ const Registers = sequelize.define('Registers',{
 	},
 	SchoolId:{
 		type: Sequelize.INTEGER
+	},
+	Aibucks: {
+		type: Sequelize.INTEGER
 	}
 });
 

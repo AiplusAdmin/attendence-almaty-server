@@ -15,11 +15,22 @@ const Topics = sequelize.define('Topics',{
 		type: Sequelize.STRING,
 		allowNull: false
 	},
+	SubjectId:{
+		type: Sequelize.INTEGER,
+		allowNull: false
+	},
 	createdAt:{
 		type: Sequelize.DATE
 	},
 	updatedAt:{
 		type: Sequelize.DATE
+	},
+	Branch:{
+		type: Sequelize.STRING,
+		allowNull: false
+	},
+	LevelId:{
+		type: Sequelize.INTEGER
 	}
 });
 

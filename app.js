@@ -22,7 +22,12 @@ const employees = require('./routes/employees');
 const registers = require('./routes/registers');
 const subregisters = require('./routes/subregisters');
 const schools = require('./routes/schools');
+const testcategories = require('./routes/testcategories');
+const tests = require('./routes/tests');
+const subjects = require('./routes/subjects');
+const levels = require('./routes/levels');
 const bot = require('./bot/createBot');
+//const aiplusOnlineBot = require('./bot/createAiplusOnlineBot');
 const cron = require('./scripts/cron');
 
 const app = express();
@@ -54,8 +59,13 @@ app.use('/registers',registers);
 app.use('/subregisters',subregisters);
 app.use('/schools',schools);
 app.use('/',services);
+app.use('/testcategories',testcategories);
+app.use('/tests',tests);
+app.use('/subjects',subjects);
+app.use('/levels',levels);
 
 //start bot
+//aiplusOnlineBot.bot.launch();
 //bot.launch();
 //start cron
 //cron.start();

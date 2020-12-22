@@ -21,14 +21,18 @@ const Contacts = require('../modules/Contacts');
 const Students = require('../modules/Students');
 const Schools = require('../modules/Schools');
 const Rooms = require('../modules/Rooms');
+const TestResults = require('../modules/TestResults');
 const TelegramStudents = require('../modules/TelegramStudents');
 const Aibukcs = require('../modules/Aibucks');
+const Topics = require('../modules/Topics');
+const Subjects = require('../modules/Subjects');
 const sendMail = require('../scripts/gmail');
 const bot = require('../bot/createBot');
 const botUtils = require('../bot/botUtils');
 const verifyPassword = require('../scripts/verifyPassword');
 const hh = require('../scripts/hh');
 const support = require('../scripts/support');
+const aiplusOnlineBot = require('../scripts/aiplusOnlineBotFunctions');
 
 const key = {
     "domain": process.env.DOMAIN,
@@ -89,113 +93,6 @@ function sleep(ms){
     return new Promise(resolve=>{
         setTimeout(resolve,ms)
     });
-}
-
-function Capital(string){
-	return string ? string.charAt(0).toUpperCase() + string.toLowerCase().slice(1):string;
-}
-
-function subjectName(subject){
-	var group = subject.split('.');
-	var sj = group[0] == 'IND' ? group[1]:group[0];
-	var name;
-	switch(sj.toUpperCase().trim()){
-		case 'M':
-			name = 'математика';
-			break;
-		case 'М':
-			name = 'математика';
-			break;
-		case 'GM':
-			name = 'геометрия';
-			break;
-		case 'A':
-			name = 'алгебра';
-			break;
-		case 'MG':
-			name = 'мат. грамотность';
-			break;
-		case 'K':
-			name = 'казахский язык';
-			break;
-		case 'R':
-			name = 'русский язык';
-			break;
-		case 'E':
-			name = 'английский язык';
-			break;
-		case 'Е':
-			name = 'английский язык';
-			break;
-		case 'L':
-			name = 'логика';
-			break;
-		case 'F':
-			name = 'физика';
-			break;
-		case 'CH':
-			name = 'химия';
-			break;
-		case 'СH':
-			name = 'химия';
-			break;
-		case 'X':
-			name = 'химия';
-			break;
-		case 'B':
-			name = 'биология';
-			break;
-		case 'HK':
-			name = 'история казахстана';
-			break;
-		case 'GR':
-			name = 'грамотность чтения';
-			break;
-		case 'OB':
-			name = 'обучение грамоте';
-			break;
-		case 'KL':
-			name = 'каллиграфия';
-			break;
-		case 'G':
-			name = 'география';
-			break;
-		case 'SA':
-			name = 'сауат ашу';
-			break;
-		case 'WH':
-			name = 'всемирная история';
-			break;
-		case 'OG':
-			name = 'обучению грамоте';
-			break;
-		case 'RR':
-			name = 'развития речи';
-			break;
-		case 'D':
-			name = 'познания мира';
-			break;
-		case 'RD':
-			name = 'чтения';
-			break;
-		case 'T':
-			name = 'творчество';
-			break;
-		case 'P':
-			name = 'письмо';
-			break;
-		case 'CHOP':
-			name = 'человек общество право';
-			break;
-		case 'S':
-			name = 'сауат Ашу';
-			break;
-		default:
-			name = 'нет';
-			break;
-	}
-
-	return name;
 }
 
 //Get Offices
@@ -294,8 +191,10 @@ router.post('/groups',verifyToken, (req, res) => {
 					var group = new Object();
 					group.Id = response.data[i].Id;
 					group.name = response.data[i].Name;
-					group.subject = support.subjectName(response.data[i].Name);
+					group.subject = support.Capitalize(support.subjectName(response.data[i].Name));
+					group.symbol = support.getSubject(response.data[i].Name);
 					group.branch = support.getBranch(response.data[i].Name);
+					group.klass = support.getClass(response.data[i].Name);
 					group.teacher = response.data[i].ScheduleItems[j].Teacher;
 					group.time = response.data[i].ScheduleItems[j].BeginTime + '-' + response.data[i].ScheduleItems[j].EndTime;
 					group.days = Weekdays(response.data[i].ScheduleItems[j].Weekdays);
@@ -330,6 +229,7 @@ router.post('/groupstudents',verifyToken, (req, res) => {
 			data: []
 		});
 	} else {
+		var teacherId = req.body.teacherId;
 		var params = 'edUnitId=' + req.body.groupId;
 		api.get(key.domain,'GetEdUnitStudents',params,key.apikey)
 			.then(async (response) => {
@@ -349,50 +249,93 @@ router.post('/groupstudents',verifyToken, (req, res) => {
 								obj.attendence = false;
 								obj.aibaks = 0;
 								obj.icon = 'mdi-close-thick';
-								
-								var hh = await api.get(key.domain,'GetStudents','clientId='+student.StudentClientId,key.apikey);
-								var fields = hh.data[0].ExtraFields?hh.data[0].ExtraFields:[];
-								obj.dynamics = [];
-								fields.map(field => {
-									if(field.Name == 'Статус рейтинга')
-										obj.loyalty = field.Value == 'Потенциальный возврат'?0:field.Value == 'ТОП'?2:1;
-									if(field.Name == 'Мат динамика' || field.Name == 'Англ динамика' || field.Name == 'Каз динамика' || field.Name == 'Рус динамика'){
-										var object = {};
-										switch(field.Name){
-											case 'Мат динамика':
-												object.Name = 'M';
-												break;
-											case 'Англ динамика':
-												object.Name = 'E';
-												break;
-											case 'Каз динамика':
-												object.Name = 'K';
-												break;
-											case 'Рус динамика':
-												object.Name = 'R';
-												break;
-										}
-										
-										if(groupName == object.Name){
-											object.Value = Math.round((Math.abs(field.Value) + Number.EPSILON) * 100) / 100;
-											if(field.Value > 0){
-												object.progress = 'mdi-arrow-up';
-											} else {
-												object.progress = 'mdi-arrow-down';
+								if(teacherId == 4288 || teacherId == 154 || teacherId == 9517 || teacherId == 4425|| teacherId == 13964 || teacherId ==5425 || teacherId == 2136){
+									var hh = await api.get(key.domain,'GetStudents','clientId='+student.StudentClientId,key.apikey);
+									var fields = hh.data[0].ExtraFields?hh.data[0].ExtraFields:[];
+									obj.dynamics = [];
+									fields.map(field => {
+										if(field.Name == 'Статус рейтинга')
+											obj.loyalty = field.Value == 'Потенциальный возврат'?0:field.Value == 'ТОП'?2:1;
+	
+										if(field.Name == 'Мат динамика' || field.Name == 'Англ динамика' || field.Name == 'Каз динамика' || field.Name == 'Рус динамика'){
+											var Name = field.Name == 'Мат динамика' ?'M':field.Name == 'Англ динамика' ? 'E':field.Name == 'Рус динамика' ?'R':'K';
+											var object = {};
+											var arr = obj.dynamics.filter(dynamic => dynamic.Name == Name);
+											if(arr.length == 1){
+												var index = obj.dynamics.findIndex(dynamic => dynamic.Name == Name);
+												var object = arr[0];
+												if(groupName == object.Name){
+													field.Value = field.Value.replace(',','.');
+													object.Value = Math.round((Math.abs(field.Value) + Number.EPSILON) * 100) / 100;
+													if(field.Value >= 0){
+														object.progress = 'mdi-arrow-up';
+													} else {
+														object.progress = 'mdi-arrow-down';
+													}
+												}
+												obj.dynamics[index] = object;	
+											}else {
+												var object = {};
+												object.Name = Name;
+	
+												if(groupName == object.Name){
+													field.Value = field.Value.replace(',','.');
+													object.Value = `${(Math.round((Math.abs(field.Value) + Number.EPSILON) * 100) / 100)}%`;
+													if(field.Value >= 0){
+														object.progress = 'mdi-chevron-up';
+														object.iconcolor = 'green';
+													} else {
+														object.progress = 'mdi-chevron-down';
+														object.iconcolor = 'red';
+													}
+												}
+	
+												obj.dynamics.push(object);
 											}
 										}
-										obj.dynamics.push(object);
-									}
-								});
-								obj.dynamics.sort(function(a){
-									if(a.Value)
-										return -1;
-									
-									return 0;
-								});
-								console.log(obj.dynamics);
-								students.push(obj); 
-							}
+										if(field.Name == 'Мат рейтинг' || field.Name == 'Каз рейтинг' || field.Name == 'Рус рейтинг' || field.Name == 'Англ рейтинг'){
+											var Name = field.Name == 'Мат рейтинг' ?'M':field.Name == 'Англ рейтинг' ? 'E':field.Name == 'Рус рейтинг' ?'R':'K';
+											var arr = obj.dynamics.filter(dynamic => dynamic.Name == Name);
+											if(arr.length == 1){
+												var index = obj.dynamics.findIndex(dynamic => dynamic.Name == Name);
+												var object = arr[0];
+												field.Value = field.Value.replace(',','.');
+												if(field.Value >= 7.5 && field.Value <= 10)
+													object.class = 'group_good';
+												else if(field.Value >= 5 && field.Value <= 7.5)
+													object.class = 'group_norm';
+												else
+													object.class = 'group_bad';
+												
+												obj.dynamics[index] = object;	
+											} else {
+												var object = {};
+												object.Name = Name;
+												field.Value = field.Value.replace(',','.');
+												if(field.Value >= 7.5 && field.Value <= 10)
+													object.class = 'group_good';
+												else if(field.Value >= 5 && field.Value <= 7.5)
+													object.class = 'group_norm';
+												else
+													object.class = 'group_bad';
+	
+												obj.dynamics.push(object);
+											}
+										}
+									});
+									obj.dynamics.sort(function(a){
+										if(a.Value)
+											return -1;
+										
+										return 0;
+									});
+									console.log(obj.dynamics);
+									students.push(obj); 
+								}else {
+									students.push(obj); 
+
+								}
+								}
 							resolve(true);
 						});
 					},Promise.resolve(true));
@@ -483,6 +426,7 @@ router.post('/setpasses',verifyToken, (req, res) => {
 router.post('/setattendence', async (req, res) => { 
 	try{
 		var students = req.body.students;
+		var group  = req.body.group;
 		var TeacherId = req.body.group.teacherId;
 		var SubTeacherId = req.body.group.subteacherId;
 		var Change = req.body.group.change;
@@ -499,7 +443,25 @@ router.post('/setattendence', async (req, res) => {
 		var SchoolId = req.body.group.officeId;
 		var RoomId = req.body.group.roomId;
 		var LevelTest = req.body.group.level;
-		
+		var Aibucks = req.body.Aibucks?req.body.Aibucks:null;
+	/*	var TopicId = req.body.topic ? req.body.topic.Id: null;
+		var homework = req.body.homework ? req.body.homework : null;
+		var HomeWorkComment = '';
+		if(homework){
+			var topic = req.body.topic ? req.body.topic.Name: null;
+			var homeworkLevel = homework.level ? homework.level: null;
+			var homeworkText = homework.text ? homework.text : null;
+			if(topic){
+				HomeWorkComment += 'Тема урока : ' + topic + '\n';
+			}
+			if(homeworkText){
+				HomeWorkComment += 'Домашнее задание на следующий урок : \n';
+				if(homeworkLevel){
+					HomeWorkComment += 'Уровень : ' + homeworkLevel.join(', ') + '\n';
+				} 
+				HomeWorkComment += 'Домашнее задание : ' + homeworkText;
+			}
+		}*/
 		var newRegister = await Registers.create({
 				Change,
 				LevelTest,
@@ -516,18 +478,27 @@ router.post('/setattendence', async (req, res) => {
 				IsSubmitted,
 				IsStudentAdd,
 				IsOperator,
-				SchoolId	
+				SchoolId,
+				Aibucks
+			//	TopicId,
+			//	HomeWorkComment
 			},{
-				fields:['Change','LevelTest','RoomId','SubTeacherId','TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator','SchoolId']
+				fields:['Change','LevelTest','RoomId','SubTeacherId','TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator','SchoolId','Aibucks']
 		});
 		if(newRegister){ 
-			var subregisters = students.map(function(student){
+			var subregisters = []; 
+			students.map(function(student){
 				if(!student.delete){
 					var obj = {};
 					var comment = '';
 					if(student.comment){
 						comment = student.comment.join('\n');
+					//	comment += '\n\n' + HomeWorkComment;
 					}
+					/*else {
+						comment = HomeWorkComment;
+					}*/
+
 					obj.RegisterId = newRegister.Id;
 					obj.ClientId = student.clientid;
 					obj.FullName = student.name;
@@ -538,7 +509,7 @@ router.post('/setattendence', async (req, res) => {
 					obj.Comment = comment;
 					obj.Status = student.status;
 	
-					return obj;
+					subregisters.push(obj);
 				}
 			});
 			var result = await SubRegisters.bulkCreate(subregisters,{
@@ -547,7 +518,7 @@ router.post('/setattendence', async (req, res) => {
 			if(result.length > 0){
 				new Promise(async (resolve) => {
 					try{
-						await hh(LessonDate,GroupId,students,newRegister);
+						await hh(LessonDate,GroupId,students,newRegister,HomeWorkComment);
 						console.log('закончил');
 						resolve(true);
 					}catch(err){
@@ -555,6 +526,15 @@ router.post('/setattendence', async (req, res) => {
 						resolve(true);
 					}
 				});
+				new Promise(resolve => {
+					try{
+						aiplusOnlineBot.notificationGroup(group, students);
+						resolve(true);
+					}catch(err){
+						console.log(err);
+						resolve(true);
+					}
+				})
 				res.json({
 					status: 200,
 					message: 'OK'				
@@ -873,6 +853,54 @@ router.post('/addroomexample', (req, res) => {
 	res.send('ok');
 });
 
+router.post('/addtopicsexample',(req,res) => {
+	try{
+		var workbook = xlsx.readFile('7 класс темы.xlsx',{cellDates: true});
+		var sheetName = workbook.SheetNames[0];
+		var worksheet = workbook.Sheets[sheetName];
+		var data = xlsx.utils.sheet_to_json(worksheet);
+		data.map(async function(record){
+			try{
+				var Class = record['Класс'].toString();
+				var Name = record['Темы'];
+				var SubjectId = record['Предмет'];
+				var Branch = record['Отделение'];
+				var LevelId = record['Уровень'] ? record['Уровень']:null;
+				console.log(record);
+				var topic = await Topics.findOne({
+					attributes: ['Id','Class','Name','SubjectId','Branch','LevelId'],
+					where:{
+						Class,
+						Name,
+						SubjectId,
+						Branch,
+						LevelId
+					}
+				});
+				if(topic === null){
+					var newTopic = await Topics.create({
+						Class,
+						Name,
+						SubjectId,
+						Branch,
+						LevelId
+					},{
+						fields: ['Class','Name','SubjectId','Branch','LevelId'],
+					});
+					console.log('Добавили');
+				} else {
+					console.log('Есть');
+				}
+			}catch(error){
+				console.log(error);
+			}
+		});
+		res.send('ok');
+	}catch(err){
+		console.log(err);
+	}
+});
+
 router.post('/sendmessagetelegram',(req,res) => {
 	var text = '';
 	var url = `https://${process.env.DOMAIN}.t8s.ru/Learner/Group/${req.body.group.Id}`;
@@ -1059,7 +1087,7 @@ router.post('/editpersonal',verifyToken,async (req,res) => {
 
 			fullname = fullname.map(function(name){
 				
-				return Capital(name);
+				return support.Capitalize(name);
 			});
 			
 			if(teacher != null){
@@ -1115,29 +1143,93 @@ router.get('/searchteacher',verifyToken, async (req, res) => {
 router.get('/searchstudent',verifyToken, async (req, res) => {
 	try{
 		
-		var arr = req.query.value.split(' ');
+		var value = req.query.value.trim().toLowerCase();
+		var arr = value.toString().split(' ');
+		var arr1 = value.toString().split(' ');
 		var firstname = arr[1] ? '%'+arr[1]+'%':'%%';
 		var lastname  = arr[0] ? '%'+arr[0]+'%':'%%';
-		var middlename = arr[2] ? '%'+arr[2]+'%':'%%';
+		arr1.splice(0,2);
+		var s = arr1.join(' ');
+		
+		var middlename = s ? '%'+s+'%':'%%';
 		var klass = support.getClass(req.query.group);
 		var kl = klass.split('-');
-		console.log(kl);
+		var query = [];
+		
 		if(kl.length > 1){
-			var query = `SELECT "ClientId",concat("LastName",' ',"FirstName",' ',"MiddleName") as "FullName"
-			FROM "Students" WHERE "LastName" like :lastname AND "FirstName" like :firstname AND "MiddleName" like :middlename AND ("Class" = :class1 OR "Class" = :class2) LIMIT 10;`;
-			var students = await sequelize.query(query,{
-				replacements:{firstname: firstname,lastname:lastname,middlename:middlename,class1:kl[0],class2:kl[1]},
-				type: QueryTypes.SELECT
-			});
-			res.send({status: 200, data: students});
+			if(arr.length == 0){
+				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
+				FROM "Students" WHERE ("Class" = :class1 OR "Class" = :class2) LIMIT 10;`;
+				students = await sequelize.query(query,{
+					replacements:{class1:kl[0],class2:kl[1]},
+					type: QueryTypes.SELECT
+				});
+				res.send({status: 200, data: students});
+			} else if(arr.length  == 1){
+				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
+				FROM "Students" WHERE "LastName" like :lastname or "FirstName" like :lastname AND ("Class" = :class1 OR "Class" = :class2) LIMIT 10;`;
+				students = await sequelize.query(query,{
+					replacements:{lastname: lastname,class1:kl[0],class2:kl[1]},
+					type: QueryTypes.SELECT
+				});
+				res.send({status: 200, data: students});
+			} else if(arr.length == 2){
+				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
+				FROM "Students" WHERE (("LastName" like :lastname AND "FirstName" like :firstname) OR ("LastName" like :firstname AND "FirstName" like :lastname)) AND ("Class" = :class1 OR "Class" = :class2) LIMIT 10;`;
+				students = await sequelize.query(query,{
+					replacements:{firstname: firstname,lastname:lastname,class1:kl[0],class2:kl[1]},
+					type: QueryTypes.SELECT
+				});
+				res.send({status: 200, data: students});
+			}else {
+				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
+				FROM "Students" WHERE "LastName" like :lastname AND "FirstName" like :firstname AND "MiddleName" like :middlename AND ("Class" = :class1 OR "Class" = :class2) LIMIT 10;`;
+				students = await sequelize.query(query,{
+					replacements:{firstname: firstname,lastname:lastname,middlename:middlename,class1:kl[0],class2:kl[1]},
+					type: QueryTypes.SELECT
+				});
+				res.send({status: 200, data: students});
+			}
 		}else {
-			var query = `SELECT "ClientId",concat("LastName",' ',"FirstName",' ',"MiddleName") as "FullName"
-			FROM "Students" WHERE "LastName" like :lastname AND "FirstName" like :firstname AND "MiddleName" like :middlename AND "Class" = :class LIMIT 10;`;
-			var students = await sequelize.query(query,{
-				replacements:{firstname: firstname,lastname:lastname,middlename:middlename,class:kl[0]},
-				type: QueryTypes.SELECT
-			});
-			res.send({status: 200, data: students});	
+			if(arr.length == 0){
+				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
+				FROM "Students" LIMIT 10;`;
+				students = await sequelize.query(query,{
+					type: QueryTypes.SELECT
+				});
+				console.log(students);
+				res.send({status: 200, data: students});
+			} else if(arr.length  == 1){
+				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
+				FROM "Students" WHERE LOWER("LastName") like :lastname OR LOWER("FirstName") like :lastname LIMIT 10;`;
+				students = await sequelize.query(query,{
+					replacements:{lastname: lastname},
+					type: QueryTypes.SELECT
+				});
+				console.log(students);
+
+				res.send({status: 200, data: students});
+			} else if(arr.length == 2){
+				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
+				FROM "Students" WHERE ((LOWER("LastName") like :lastname AND LOWER("FirstName") like :firstname) OR (LOWER("LastName") like :firstname AND LOWER("FirstName") like :lastname)) LIMIT 10;`;
+				students = await sequelize.query(query,{
+					replacements:{firstname: firstname,lastname:lastname},
+					type: QueryTypes.SELECT
+				});
+				console.log(students);
+
+				res.send({status: 200, data: students});
+			}else {
+				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
+				FROM "Students" WHERE  "LastName" like :lastname AND "FirstName" like :firstname AND "MiddleName" like :middlename AND ("Class" = :class) LIMIT 10;`;
+				students = await sequelize.query(query,{
+					replacements:{firstname: firstname,lastname:lastname,middlename:middlename,class:kl[0]},
+					type: QueryTypes.SELECT
+				});
+				console.log(students);
+
+				res.send({status: 200, data: students});
+			}
 		}
 	}catch(error){
 		console.log(error);
@@ -1272,7 +1364,7 @@ router.get('/getdayregisters',async(req,res) => {
 		var date = new Date(req.query.date);
 
 		const query = `SELECT reg."Id", reg."GroupName", reg."Time", reg."LessonDate", reg."WeekDays",
-			reg."SubmitDay", reg."SubmitTime",
+			reg."SubmitDay", reg."SubmitTime",reg."LevelTest",rom."Room",
 			CASE 
 				WHEN reg."GroupName" like '%RO%' THEN 'RO'
 				WHEN reg."GroupName" like '%KO%' THEN 'KO'
@@ -1282,15 +1374,16 @@ router.get('/getdayregisters',async(req,res) => {
 			LEFT JOIN public."Teachers" as teach ON reg."TeacherId" = teach."TeacherId"
 			LEFT JOIN public."SubRegisters" as subregAll ON reg."Id" = subregAll."RegisterId"
 			LEFT JOIN public."Schools" as sch ON reg."SchoolId" = sch."SchoolId"
+			LEFT JOIN public."Rooms" as rom ON rom."Id" = reg."RoomId"
 			WHERE reg."LessonDate" = :date
-			GROUP BY reg."Id",teach."LastName",teach."FirstName",sch."Name";`
+			GROUP BY reg."Id",teach."LastName",teach."FirstName",sch."Name",rom."Room";`;
 		var registers = await sequelize.query(query,{
 			replacements:{date: date,pass:true},
 			type: QueryTypes.SELECT
 		});
 
 		registers.map(function(register){
-			var subject = subjectName(register.GroupName);
+			var subject = support.subjectName(register.GroupName);
 			register.Subject = subject;
 		});
 
@@ -1354,6 +1447,135 @@ router.get('/lastlessonroom',async (req,res) => {
 		console.log(error);
         res.send({status: 500,data: null});
 	}
+});
+
+router.get('/gettestsubjects',async (req,res) => {
+	try{
+		console.log(req.query);
+		var testId = req.query.testId;
+
+		const query = `SELECT tsb."Id",sb."Name", tsb."MaxScore"
+		FROM public."TestSubjects" tsb
+		LEFT JOIN public."Subjects" sb ON sb."Id" = tsb."SubjectId"
+		WHERE "TestId" = :testId`;
+		var testsubjects = await sequelize.query(query,{
+			replacements:{testId: testId},
+			type: QueryTypes.SELECT
+		});
+	
+		if(testsubjects.length > 0){
+			res.send({status: 200, data: testsubjects});	
+		}else{
+			console.log('hey');
+			res.send({status: 404, data: null});
+		}
+	}catch(error){
+		console.log(error);
+        res.send({status: 500,data: null});
+	}
+});
+
+router.get('/searchstudenttest',verifyToken, async (req, res) => {
+	try{
+		
+		var arr = req.query.value.split(' ');
+		var firstname = arr[1] ? '%'+arr[1]+'%':'%%';
+		var lastname  = arr[0] ? '%'+arr[0]+'%':'%%';
+		var middlename = arr[2] ? '%'+arr[2]+'%':'%%';
+		
+		var query = `SELECT "StudentId",concat("LastName",' ',"FirstName",' ',"MiddleName") as "FullName"
+		FROM "Students" WHERE "LastName" like :lastname AND "FirstName" like :firstname AND "MiddleName" like :middlename`;
+		var students = await sequelize.query(query,{
+			replacements:{firstname: firstname,lastname:lastname,middlename:middlename},
+			type: QueryTypes.SELECT
+		});
+		res.send({status: 200, data: students});	
+	}catch(error){
+		console.log(error);
+        res.send({status: 500,data: []});
+	}
+});
+
+router.post('/setpersonaltests',async (req,res)=>{
+	try{
+		var today = new Date();
+		var day = today.getFullYear()+'-'+("0" + (today.getMonth()+1)).slice(-2)+'-'+("0" + today.getDate()).slice(-2);
+		var students = req.body.students;
+		var personalTest = req.body.personalTest;
+		var teacherId = req.body.teacherId;
+		var testresults = [];
+		students.map(function(student){
+			student.testSubjects.map(function(testsubject){
+				var obj = {};
+				obj.StudentId = student.value.StudentId;
+				obj.TestSubjectId = testsubject.Id;
+				obj.TeacherId = teacherId;
+				obj.Score = testsubject.Score;
+				obj.TestDate = personalTest.date;
+				obj.SubmitDate = day;
+				testresults.push(obj);
+			});
+		});
+	
+		var result = await TestResults.bulkCreate(testresults,{
+			fields:['StudentId','TestSubjectId','TeacherId','Score','TestDate','SubmitDate']
+		});
+
+		if(result.length > 0){
+			res.json({
+				status: 200,
+				message: 'OK'				
+			});
+		}else {
+			res.json({
+				status: 500,
+				message: 'Error'
+			});
+		}
+	}catch(err){
+		console.log(error);
+		res.json({
+			status: 500,
+			message: 'Error'
+		});
+	}
+});
+
+router.get('/gettopics',async (req,res) => {
+	try{
+		console.log(req.query);
+		var Class = req.query.klass;
+		var Branch = req.query.branch;
+		var LevelId = req.query.level ? req.query.level:null;
+		var SubjectName = req.query.subject;
+		var query = ``;
+		var topics = [];
+		if(LevelId){
+			query = `SELECT tp."Id", ROW_NUMBER() OVER() || '. ' || tp."Name" as "Name"
+			FROM public."Topics" as tp
+			LEFT JOIN public."Subjects" as sbj ON  tp."SubjectId" = sbj."Id"
+			WHERE tp."Class" = :Class AND (tp."Branch" = :Branch OR tp."Branch" = 'КОРО') AND tp."LevelId" = :LevelId AND sbj."Name" = :SubjectName;`
+			topics =  await sequelize.query(query,{
+				replacements:{Class: Class,Branch:Branch,LevelId:LevelId,SubjectName:SubjectName},
+				type: QueryTypes.SELECT
+			});
+		} else {
+			query = `SELECT tp."Id", ROW_NUMBER() OVER() || '. ' || tp."Name" as "Name"
+			FROM public."Topics" as tp
+			LEFT JOIN public."Subjects" as sbj ON  tp."SubjectId" = sbj."Id"
+			WHERE tp."Class" = :Class AND (tp."Branch" = :Branch OR tp."Branch" = 'КОРО') AND tp."LevelId" is NULL AND sbj."Name" = :SubjectName;`
+			topics =  await sequelize.query(query,{
+				replacements:{Class: Class,Branch:Branch,SubjectName:SubjectName},
+				type: QueryTypes.SELECT
+			});
+		}
+		console.log('Length',topics.length);
+		res.send({status: 200, data: topics});	
+	}catch(err){
+		console.log(err);
+	}
+	
+
 });
 
 module.exports = router;
