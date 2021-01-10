@@ -22,17 +22,17 @@ const Students = require('../modules/Students');
 const Schools = require('../modules/Schools');
 const Rooms = require('../modules/Rooms');
 const TestResults = require('../modules/TestResults');
-const TelegramStudents = require('../modules/TelegramStudents');
-const Aibukcs = require('../modules/Aibucks');
+//const ExtraFields = require('../modules/ExtraFields');
 const Topics = require('../modules/Topics');
-const Subjects = require('../modules/Subjects');
+const VoksresTests = require('../modules/VoksresTests');
+const KolHarTests = require('../modules/KolHarTests');
 const sendMail = require('../scripts/gmail');
 const bot = require('../bot/createBot');
 const botUtils = require('../bot/botUtils');
 const verifyPassword = require('../scripts/verifyPassword');
 const hh = require('../scripts/hh');
 const support = require('../scripts/support');
-const aiplusOnlineBot = require('../scripts/aiplusOnlineBotFunctions');
+//const aiplusOnlineBot = require('../scripts/aiplusOnlineBotFunctions');
 
 const key = {
     "domain": process.env.DOMAIN,
@@ -128,7 +128,6 @@ router.post('/teacher',verifyToken,(req, res) => {
 //Log In to System
 router.post('/login', async (req, res) => {
 	var remember = req.body.remember;
-	
 	passport.authenticate('local',(err,user,info) => {
 		if(err)
 			res.send({status: 400,message: 'Error'});
@@ -444,10 +443,13 @@ router.post('/setattendence', async (req, res) => {
 		var RoomId = req.body.group.roomId;
 		var LevelTest = req.body.group.level;
 		var Aibucks = req.body.Aibucks?req.body.Aibucks:null;
-	/*	var TopicId = req.body.topic ? req.body.topic.Id: null;
+		var TopicId = req.body.topic ? req.body.topic.Id: null;
 		var homework = req.body.homework ? req.body.homework : null;
+		var kolhar = req.body.kolhar;
+		var foskres = req.body.foskres;
+		var subject = req.body.group.subject;
 		var HomeWorkComment = '';
-		if(homework){
+	/*	if(homework){
 			var topic = req.body.topic ? req.body.topic.Name: null;
 			var homeworkLevel = homework.level ? homework.level: null;
 			var homeworkText = homework.text ? homework.text : null;
@@ -479,17 +481,19 @@ router.post('/setattendence', async (req, res) => {
 				IsStudentAdd,
 				IsOperator,
 				SchoolId,
-				Aibucks
-			//	TopicId,
-			//	HomeWorkComment
+				Aibucks,
 			},{
 				fields:['Change','LevelTest','RoomId','SubTeacherId','TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator','SchoolId','Aibucks']
 		});
 		if(newRegister){ 
-			var subregisters = []; 
+			var subregisters = [];
+			var voksrestests = [];
+			var kolhartest = [];
 			students.map(function(student){
 				if(!student.delete){
 					var obj = {};
+					var kolobj = {};
+					var voksresobj = {};
 					var comment = '';
 					if(student.comment){
 						comment = student.comment.join('\n');
@@ -509,16 +513,47 @@ router.post('/setattendence', async (req, res) => {
 					obj.Comment = comment;
 					obj.Status = student.status;
 	
+					if(kolhar && student.attendence){
+						kolobj.ClientId = student.clientid;
+						kolobj.Score = student.kolhar;
+						kolobj.LessonDay = LessonDate;
+						kolobj.SubmitDay = SubmitDay;
+
+						kolhartest.push(kolobj);
+					}
+
+					if(foskres && student.attendence){
+						voksresobj.ClientId = student.clientid;
+						voksresobj.Score = student.foskres;
+						voksresobj.Subject = subject;
+						voksresobj.LessonDay = LessonDate;
+						voksresobj.SubmitDay = SubmitDay;
+
+						voksrestests.push(voksresobj);
+					}
+
 					subregisters.push(obj);
 				}
 			});
+			if(kolhar){
+				KolHarTests.bulkCreate(kolhartest,{
+					fields: ['ClientId','LessonDay','SubmitDay','Score']
+				});
+			}
+			
+			if(foskres){
+				VoksresTests.bulkCreate(voksrestests,{
+					fields: ['ClientId','Subject','LessonDay','SubmitDay','Score']
+				});
+			}
+
 			var result = await SubRegisters.bulkCreate(subregisters,{
 				fields:['RegisterId','ClientId','FullName','Pass','Homework','Test','Lesson','Comment','Status']
 			});
 			if(result.length > 0){
 				new Promise(async (resolve) => {
 					try{
-						await hh(LessonDate,GroupId,students,newRegister,HomeWorkComment);
+						await hh(LessonDate,GroupId,students,newRegister);
 						console.log('закончил');
 						resolve(true);
 					}catch(err){
@@ -526,7 +561,7 @@ router.post('/setattendence', async (req, res) => {
 						resolve(true);
 					}
 				});
-				new Promise(resolve => {
+			/*	new Promise(resolve => {
 					try{
 						aiplusOnlineBot.notificationGroup(group, students);
 						resolve(true);
@@ -534,7 +569,7 @@ router.post('/setattendence', async (req, res) => {
 						console.log(err);
 						resolve(true);
 					}
-				})
+				})*/
 				res.json({
 					status: 200,
 					message: 'OK'				
@@ -744,6 +779,91 @@ router.post('/addregister',async (req,res) => {
 	}
 });
 
+/*router.post('/addstudentexample', (req, res) => {
+	var params = "statuses="+encodeURIComponent('АДАПТАЦИОННЫЙ ПЕРИОД,Занимается,Заморозка,Регистрация');
+	api.get(key.domain,'GetStudents',params,key.apikey)
+	.then((data) => {
+        data.data.map(async function(record){
+			try{
+				var student = await Students.findOne({
+					attributes: ['ClientId'],
+					where:{
+						StudentId: record.Id
+					}
+				});
+				var klass = 'Нет';
+				var branch = 'Нет';
+				var school = record.OfficesAndCompanies ? record.OfficesAndCompanies.map(el => el.Name).join(',') : 'Нет';
+				var online = 0;
+				var timeIntesiv = null;
+				var timeStudy = '';
+				if(record.Status == 'Онлайн обучение')
+					online = 1;
+				
+				if(record.ExtraFields){
+					record.ExtraFields.find(function(record){
+						if(record.Name == 'КЛАСС')
+							klass = record.Value;
+						if(record.Name == 'Отделение')
+							branch = record.Value;
+						if(record.Name == 'Online' && record.Value == 'Да')
+							online = 1;
+						if(record.Name == 'Время обучения')
+							timeStudy = record.Value;
+						if(record.Name == 'Время интенсива')
+							timeIntesiv = record.Value;
+					});
+				}
+				var language = branch == 'КО'? 'KAZ' : 'RUS';
+				var intensiv = klass == '6' ? 1: 0;
+				if(timeIntesiv == 'Отказались')
+					intensiv = 0;
+				if(timeIntesiv == null && klass == '6'){
+					if(timeStudy == 'Утро')
+						timeIntesiv = '09:00';
+					else if(timeStudy == 'Вечер')
+						timeIntesiv = '16:00';
+					
+					console.log('hey',timeIntesiv);
+				}else if(timeIntesiv && klass == '6')
+					console.log('suka',timeIntesiv);
+				
+				if(student === null){
+					await Students.create({
+						Class: klass,
+						StudentId: record.Id,
+						ClientId: record.ClientId,
+						FirstName: record.FirstName,
+						LastName: record.LastName,
+						MiddleName: record.MiddleName?record.MiddleName:'',
+						School: school,
+						Branch: branch,
+						Language: language
+					},{
+						fields: ['Class','StudentId','ClientId','FirstName','LastName','MiddleName','School','Branch','Language']
+					});
+					await ExtraFields.create({
+						ClientId: record.ClientId,
+						Aibucks: 0,
+						Online: online,
+						Intensiv: intensiv,
+						OnlineSended : 0,
+						IntensivSended: 0,
+						TimeIntensiv: timeIntesiv
+					},{
+						fields: ['ClientId','Aibucks','Online','Intensiv','OnlineSended','IntensivSended','TimeIntensiv']
+					});
+				} else {
+					console.log('Есть');
+				}
+			}catch(error){
+				console.log(error);
+			}
+        });
+        res.send("ok");
+    });
+});
+*/
 router.post('/addstudentexample', (req, res) => {
 	var params = "statuses="+encodeURIComponent('АДАПТАЦИОННЫЙ ПЕРИОД,Занимается,Заморозка,Регистрация');
 	api.get(key.domain,'GetStudents',params,key.apikey)
@@ -1576,6 +1696,74 @@ router.get('/gettopics',async (req,res) => {
 	}
 	
 
+});
+
+router.get('/getpersonaltestteacher', async (req,res) => {
+	try{
+		var teacherId = req.query.teacherId;
+		var dateFrom = req.query.dateFrom;
+		var dateTo = req.query.dateTo;
+		var testId = req.query.testId;
+		var query = `SELECT DISTINCT sub."ClientId"
+		FROM "SubRegisters" as sub
+		LEFT JOIN "Registers" as registers ON registers."Id" = sub."RegisterId"
+		WHERE "TeacherId" = :teacherId AND "Change" = false OR "Change" IS NULL`;
+
+		var students = await sequelize.query(query,{
+			replacements:{teacherId: teacherId},
+			type: QueryTypes.SELECT
+		});  
+		
+		var str_studenst = students.map(e => e.ClientId);
+		query = `SELECT sb."Id", sb."Name"
+		FROM public."Subjects" as sb
+		LEFT JOIN public."TestSubjects" as tsb ON tsb."SubjectId" = sb."Id"
+		WHERE tsb."TestId" = :testId`;
+		var subjects = await sequelize.query(query,{
+			replacements:{testId: testId},
+			type: QueryTypes.SELECT
+		});  
+
+		var headers = [{ text: 'Ученик', value: 'Student', filterable: true},{text: 'Дата', value: 'TestDate'}];
+		subjects.map((subject)=>{
+			var obj = {};
+			obj.text = subject.Name;
+			obj.value = 'Name'+subject.Id;
+			headers.push(obj);
+		});
+		query = `SELECT st."ClientId",st."LastName" || ' ' || st."FirstName" as "FullName", sb."Id", "Score",tsb."MinScore","TestDate"
+		FROM public."TestResults" as res
+		LEFT JOIN public."Students" as st ON st."ClientId" = res."ClientId"
+		LEFT JOIN public."TestSubjects" as tsb ON tsb."Id" = res."TestSubjectId"
+		LEFT JOIN public."Subjects" as sb ON sb."Id" = tsb."SubjectId"
+		WHERE tsb."TestId" = :testId AND res."TestDate" BETWEEN :from AND :to AND res."ClientId" IN (:students);`
+		var tests = await sequelize.query(query,{
+			replacements:{testId: testId,from: dateFrom,to:dateTo,students: str_studenst},
+			type: QueryTypes.SELECT
+		});  
+		var items = [];
+		str_studenst.map(function(clientId){
+			var filters = tests.filter(test => test.ClientId == clientId);
+			if(filters.length > 0){
+				
+				var days = filters.filter((value,index) => filters.indexOf(value.TestDate) === index);
+				days.map(function(day){
+					var item = {};
+					item['Student'] = filters[0].FullName;
+					item['TestDate'] = day;
+					filters.map(function(filter){
+						if(filter.TestDate == day)
+							item['Name'+filter.Id] = filter.Score;
+					});
+					items.push(item);
+				});
+				
+			}
+		});
+		res.send({status: 200, data: {headers: headers,items: items}});
+	}catch(err){
+		console.log(err);
+	}
 });
 
 module.exports = router;

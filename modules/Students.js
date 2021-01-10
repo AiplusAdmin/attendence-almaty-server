@@ -32,6 +32,15 @@ const Students = sequelize.define('Students',{
 	},
 	updatedAt:{
 		type: Sequelize.DATE
+	},
+	School:{
+		type: Sequelize.STRING
+	},
+	Branch:{
+		type: Sequelize.STRING
+	},
+	Language:{
+		type: Sequelize.STRING
 	}
 });
 

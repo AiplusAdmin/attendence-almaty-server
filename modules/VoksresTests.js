@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../databases/index').sequelize;
 
-const StudentsHistoryNotifications = sequelize.define('StudentsHistoryNotifications',{
+const VoskresTests = sequelize.define('VoskresTests',{
 	Id:{
 		type: Sequelize.INTEGER,
 		allowNull: false,
@@ -11,17 +11,17 @@ const StudentsHistoryNotifications = sequelize.define('StudentsHistoryNotificati
 		type: Sequelize.INTEGER,
 		allowNull: false
 	},
-	GroupId:{
-		type: Sequelize.INTEGER,
-		allowNull: false
+	Subject:{
+		type: Sequelize.STRING
 	},
 	LessonDay:{
-		type: Sequelize.DATE,
-		allowNull: false
+		type: Sequelize.DATE
 	},
-	NotificatedDay:{
-		type: Sequelize.DATE,
-		allowNull: false
+	SubmitDay:{
+		type: Sequelize.DATE
+	},
+	Score:{
+		type: Sequelize.INTEGER
 	},
 	createdAt:{
 		type: Sequelize.DATE
@@ -31,4 +31,4 @@ const StudentsHistoryNotifications = sequelize.define('StudentsHistoryNotificati
 	}
 });
 
-module.exports = StudentsHistoryNotifications;
+module.exports = VoskresTests;

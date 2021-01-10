@@ -176,6 +176,169 @@ function subjectName(subject){
     return name;
 }
 
+function subjectNameKaz(subject){
+	subject = subject.split('.');
+    let name;
+    switch(subject[0].toUpperCase()){
+        case 'M':
+            name = 'математика';
+            break;
+        case 'A':
+            name = 'алгебра';
+            break;
+        case 'GM':
+            name = 'геомерия';
+            break;
+        case 'MG':
+            name = 'мат. сауаттылық';
+            break;
+        case 'K':
+            name = 'қазақ тілі';
+            break;
+        case 'R':
+            name = 'орыс тілі';
+            break;
+        case 'E':
+            name = 'ағылшын тілі';
+            break;
+        case 'L':
+            name = 'логика';
+            break;
+        case 'F':
+            name = 'физика';
+            break;
+        case 'CH':
+            name = 'химия';
+			break;
+		 case 'X':
+            name = 'химия';
+            break;
+        case 'B':
+            name = 'биология';
+            break;
+        case 'HK':
+            name = 'қазақстан тарихы';
+            break;
+        case 'OB':
+            name = 'оқу сауаттылығы';
+            break;
+        case 'KL':
+            name = 'каллиграфия';
+            break;
+        case 'G':
+            name = 'география';
+            break;
+        case 'SA':
+            name = 'сауат ашу';
+            break;
+        case 'WH':
+            name = 'дүние жүзі тарихы';
+            break;
+        case 'RR':
+            name = 'сөйлеуді дамыту';
+            break;
+        case 'D':
+            name = 'әлем туралы білім';
+            break;
+        case 'RD':
+            name = 'оқу';
+            break;
+        case 'T':
+            name = 'творчество';
+            break;
+        case 'P':
+            name = 'письмо';
+            break;
+        case 'CHOP':
+            name = 'адам қоғамы заңы';
+			break;
+		case 'IND':
+				switch(subject[1].toUpperCase()){
+				case 'M':
+					name = 'математика';
+					break;
+				case 'GM':
+					name = 'геометрия';
+					break;
+				case 'A':
+					name = 'алгебра';
+					break;
+				case 'MG':
+					name = 'мат. грамотность';
+					break;
+				case 'K':
+					name = 'казахский язык';
+					break;
+				case 'R':
+					name = 'русский язык';
+					break;
+				case 'E':
+					name = 'английский язык';
+					break;
+				case 'L':
+					name = 'логика';
+					break;
+				case 'F':
+					name = 'физика';
+					break;
+				case 'CH':
+					name = 'химия';
+					break;
+				case 'X':
+					name = 'химия';
+					break;
+				case 'B':
+					name = 'биология';
+					break;
+				case 'HK':
+					name = 'история Казахстана';
+					break;
+				case 'OB':
+					name = 'обучение грамоте';
+					break;
+				case 'KL':
+					name = 'каллиграфия';
+					break;
+				case 'G':
+					name = 'география';
+					break;
+				case 'SA':
+					name = 'сауат Ашу';
+					break;
+				case 'WH':
+					name = 'всемирная История';
+					break;
+				case 'OG':
+					name = 'обучению грамоте';
+					break;
+				case 'RR':
+					name = 'развития речи';
+					break;
+				case 'D':
+					name = 'познания мира';
+					break;
+				case 'RD':
+					name = 'чтения';
+					break;
+				case 'T':
+					name = 'творчество';
+					break;
+				case 'P':
+					name = 'письмо';
+					break;
+				case 'CHOP':
+					name = 'человек Общество Право';
+					break;
+				}
+				break;
+			default:
+				name = 'индивидуальный урок';
+				break;
+	}
+	
+    return name;
+}
+
 function getBranch(subject){
 	if(subject.includes('RO'))
 		return 'РО';
@@ -200,7 +363,7 @@ function Capitalize(string){
 	return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-function messageDay(tests, branch,name,data){
+function messageDay(tests, language, name, data){
 	var greeting = ['Здравствуйте!\u{1F337}','Доброго времени суток!\u{1F917}','Уважаемый родитель!\u{1F9D4}\u{1F469}','Добрый день!\u{2600}'];
     var meeting = ['Информирую Вас об успеваемости вашего ребенка за [дата].\u{1F4C8}','Сообщаю результаты Вашего ребенка за [дата].\u{1F4CA}','Результаты за предыдущий урок. [дата]\u{1F4DD}','Оповещаю Вас об итогах за последние занятия. [дата]\u{2705}','Уведомляю Вас о результатах Вашего ребенка. [дата]\u{1F4DA}'];
     var srezs = ['*Итоги среза по дисциплинам\u{1F4D2} (максимально 10 баллов):*','*Итоги по предметам\u{1F4DA} (максимально 10 баллов):*','*Результаты среза\u{1F4C9} (максимально 10 баллов):*'];
@@ -261,7 +424,7 @@ function messageDay(tests, branch,name,data){
 	work.set(9,'');
 	work.set(10,'');
 	work.set(11,'');
-	if(branch == 'ко'){
+	if(language == 'KAZ'){
         greeting = ['Салеметсіз бе!\u{1F337}','Қайырлы күн!\u{1F917}','Құрметті ата-ана!\u{1F9D4}\u{1F469}'];
         meeting = ['Балаңыздың оқу үлгерімі туралы хабардар етемін. [дата]\u{1F4C8}','Балаңыздың оқу нәтижелері бойынша ақпарат. [дата]\u{1F4CA}','Өткен сабақ бойынша нәтижелері. [дата]\u{1F4DD}','Соңғы сабақтардағы нәтижелері. [дата]\u{2705}','Балаңыздың өтілген сабақ бойынша ағымдық нәтижелері. [дата]\u{1F4DA}'];
         srezs = ['*Бақылау нәтижелері\u{1F4D2} (максималды 10 балл):*','*Бақылау қорытындылары\u{1F4DA} (максималды 10 балл):*','*Пәндік бақылау бойынша нәтиже көрсеткіштері\u{1F4C9} (максималды 10 балл):*'];
@@ -324,14 +487,14 @@ function messageDay(tests, branch,name,data){
 			if(skill.SkillName == 'Оценка учителя'){
 				var homework = work.get(skill.Score);
 				if(!homework){
-					homework += Capital(branch == 'ко'? subjectNameKaz(test.EdUnitName):subjectName(test.EdUnitName));
+					homework += Capital(language == 'KAZ'? subjectNameKaz(test.EdUnitName):subjectName(test.EdUnitName));
 				} else {
-					homework += ',' + Capital(branch == 'ко'? subjectNameKaz(test.EdUnitName):subjectName(test.EdUnitName));
+					homework += ',' + Capital(language == 'KAZ'? subjectNameKaz(test.EdUnitName):subjectName(test.EdUnitName));
 				}
 				work.set(skill.Score, homework);
 			} else if(skill.SkillName == 'Срез'){
 				if(skill.Score >= 0 && skill.Score <= 10 && !isIntensiv(test.EdUnitName)){
-					var subject = Capital(branch == 'ко'? subjectNameKaz(test.EdUnitName):subjectName(test.EdUnitName));
+					var subject = Capital(language == 'KAZ'? subjectNameKaz(test.EdUnitName):subjectName(test.EdUnitName));
 					srezy += itog.replace('[Предмет в им под]',subject).replace('[0-10 баллов]',skill.Score) + '\n';
 					sum += skill.Score;
 				} else {
@@ -388,7 +551,7 @@ function messageDay(tests, branch,name,data){
                     message += '\n' + home2.get(k);
                     break;
             }
-            var subject = branch == 'ко' ? v.split(',').join(' және ') : v.split(',').join(' и ');
+            var subject = language == 'KAZ' ? v.split(',').join(' және ') : v.split(',').join(' и ');
             message = message.replace('[предмет в им под]',subject);
         }else if(tests.length != size && size == 1){
             switch(j){
@@ -410,6 +573,25 @@ function messageDay(tests, branch,name,data){
 	var globalmessage = greet  + name + '\n\n' + meet + kommentari;
 	
 	return globalmessage;
+}
+
+function personalMessage(test,day){
+	var messageStart = 'Дорогие родители и ученики, высылаем вам результаты тестов 🤩🥳 📑\n\n';
+	var messageType = '🔍Формат: ' + test.TestTypeName + '\n\n';
+	var messageFio = '🗣ФИО ученика: ' + test.StudentName + '\n';
+	var messageDate = '🗓 Дата: ' + day + '\n';
+	var messageSubjects = '📚 Предмет / балл:\n\nРезультаты тестирования  📈\n\n';
+	var sum = 0;
+	var total = 0;
+	test.Skills.map(function(skill){
+		messageSubjects += '🔸' + skill.SkillName + ' - ' + skill.Score + '/' + skill.MaxScore + '\n';
+		sum+=skill.Score;
+		total+=skill.MaxScore;
+	});
+	var messageTotal = '\n_______\n🔢 Всего: ' + sum + '/' + total;
+	var message = messageStart + messageType + messageFio + messageDate + messageSubjects + messageTotal;
+
+ 	return message;
 }
 
 function notificationMessage(group,student){
@@ -493,5 +675,6 @@ module.exports = {
 	getSubject,
 	Capitalize,
 	messageDay,
-	notificationMessage
+	notificationMessage,
+	personalMessage
 }

@@ -63,6 +63,12 @@ const Registers = sequelize.define('Registers',{
 	},
 	Aibucks: {
 		type: Sequelize.INTEGER
+	},
+	TopicId: {
+		type: Sequelize.INTEGER
+	},
+	HomeWorkComment: {
+		type: Sequelize.TEXT
 	}
 });
 

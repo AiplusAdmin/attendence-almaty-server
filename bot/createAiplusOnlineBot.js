@@ -90,10 +90,6 @@ bot.on('message',(ctx) => {
 	ctx.reply(message);
 });
 
-
-
-
-
 module.exports ={
 	bot,
 	queueBot

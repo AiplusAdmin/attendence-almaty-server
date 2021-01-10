@@ -126,7 +126,7 @@ async function setGroupResult(date,groupId,students,register){
 						data.skills = skills;
 						if(student.comment){
 							comment=student.comment.join('\n');
-					//		comment += '\n\n' + homework;
+//							comment += '\n\n' + homework;
 						} /*else {
 							comment = homework;
 						}*/

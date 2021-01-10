@@ -7,7 +7,7 @@ const TestResults = sequelize.define('TestResults',{
 		allowNull: false,
 		primaryKey: true
 	},
-	StudentId:{
+	ClientId:{
 		type: Sequelize.INTEGER,
 		allowNull: false
 	},

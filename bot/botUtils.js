@@ -23,6 +23,14 @@ function buildUrlButton(text, url) {
 	}
 }
 
+function buildUrlButton(obj) {
+	return {
+		reply_markup: JSON.stringify({
+			inline_keyboard: obj	
+		})
+	}
+}
+
 
 function buildShareButton(text, shareUrl) {
 	return [{

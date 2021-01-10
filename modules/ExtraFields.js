@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../databases/index').sequelize;
 
-const StudentsHistoryNotifications = sequelize.define('StudentsHistoryNotifications',{
+const ExtraFields = sequelize.define('ExtraFields',{
 	Id:{
 		type: Sequelize.INTEGER,
 		allowNull: false,
@@ -11,17 +11,23 @@ const StudentsHistoryNotifications = sequelize.define('StudentsHistoryNotificati
 		type: Sequelize.INTEGER,
 		allowNull: false
 	},
-	GroupId:{
+	Aibucks:{
 		type: Sequelize.INTEGER,
-		allowNull: false
 	},
-	LessonDay:{
-		type: Sequelize.DATE,
-		allowNull: false
+	Online:{
+		type: Sequelize.BOOLEAN,
 	},
-	NotificatedDay:{
-		type: Sequelize.DATE,
-		allowNull: false
+	Intensiv: {
+		type: Sequelize.BOOLEAN,
+	},
+	OnlineSended: {
+		type: Sequelize.BOOLEAN,
+	},
+	IntensivSended: {
+		type: Sequelize.BOOLEAN,
+	},
+	TimeIntensiv:{
+		type: Sequelize.STRING
 	},
 	createdAt:{
 		type: Sequelize.DATE
@@ -31,4 +37,4 @@ const StudentsHistoryNotifications = sequelize.define('StudentsHistoryNotificati
 	}
 });
 
-module.exports = StudentsHistoryNotifications;
+module.exports = ExtraFields;

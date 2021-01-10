@@ -16,6 +16,7 @@
     "dotenv": "^8.2.0",
     "ejs": "~2.6.1",
     "express": "~4.16.1",
+    "express-fileupload": "^1.2.0",
     "express-flash": "0.0.2",
     "express-session": "^1.17.1",
     "hashmap": "^2.4.0",
@@ -23,6 +24,7 @@
     "intel": "^1.2.0",
     "jsonwebtoken": "^8.5.1",
     "morgan": "~1.9.1",
+    "multer": "^1.4.2",
     "node-cron": "^2.0.3",
     "nodemailer": "^6.4.11",
     "passport": "^0.4.1",
@@ -36,7 +38,7 @@
     "unique-random": "^2.1.0",
     "uuid": "^8.3.0",
     "winston": "^3.3.3",
-    "xlsx": "^0.16.8"
+    "xlsx": "^0.16.9"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

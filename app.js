@@ -12,6 +12,7 @@ const rfs = require('rotating-file-stream')
 const cors = require('cors');
 const passport = require('passport');
 const flash = require('express-flash');
+const upload = require('express-fileupload');
 
 const initializePassport = require('./config/passport-config');
 const services = require('./routes/services');
@@ -27,8 +28,9 @@ const tests = require('./routes/tests');
 const subjects = require('./routes/subjects');
 const levels = require('./routes/levels');
 const bot = require('./bot/createBot');
-//const aiplusOnlineBot = require('./bot/createAiplusOnlineBot');
+const aiplusOnlineBot = require('./bot/createAiplusOnlineBot');
 const cron = require('./scripts/cron');
+const telegram = require('./routes/telegram');
 
 const app = express();
 initializePassport(passport);
@@ -43,6 +45,7 @@ app.set('view engine', 'ejs');
 
 app.use(cors());
 app.use(flash());
+app.use(upload());
 app.use(cookieParser());
 app.use(morgan('combined',{ stream: accessLogStream }));
 app.use(bodyParser.json());
@@ -63,9 +66,9 @@ app.use('/testcategories',testcategories);
 app.use('/tests',tests);
 app.use('/subjects',subjects);
 app.use('/levels',levels);
-
+app.use('/telegram',telegram);
 //start bot
-//aiplusOnlineBot.bot.launch();
+aiplusOnlineBot.bot.launch();
 //bot.launch();
 //start cron
 //cron.start();
