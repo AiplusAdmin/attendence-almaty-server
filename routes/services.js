@@ -425,7 +425,7 @@ router.post('/setpasses',verifyToken, (req, res) => {
 router.post('/setattendence', async (req, res) => { 
 	try{
 		var students = req.body.students;
-	//	var group  = req.body.group;
+		var group  = req.body.group;
 		var TeacherId = req.body.group.teacherId;
 		var SubTeacherId = req.body.group.subteacherId;
 		var Change = req.body.group.change;
@@ -443,8 +443,8 @@ router.post('/setattendence', async (req, res) => {
 		var RoomId = req.body.group.roomId;
 		var LevelTest = req.body.group.level;
 		var Aibucks = req.body.Aibucks?req.body.Aibucks:null;
-		//var TopicId = req.body.topic ? req.body.topic.Id: null;
-		//var homework = req.body.homework ? req.body.homework : null;
+		var TopicId = req.body.topic ? req.body.topic.Id: null;
+		var homework = req.body.homework ? req.body.homework : null;
 		var kolhar = req.body.kolhar;
 		var foskres = req.body.foskres;
 		var subject = req.body.group.subject;
@@ -1740,13 +1740,17 @@ router.get('/getpersonaltestteacher', async (req,res) => {
 		var tests = await sequelize.query(query,{
 			replacements:{testId: testId,from: dateFrom,to:dateTo,students: str_studenst},
 			type: QueryTypes.SELECT
-		});  
+		}); 
 		var items = [];
 		str_studenst.map(function(clientId){
 			var filters = tests.filter(test => test.ClientId == clientId);
 			if(filters.length > 0){
+				var set = new Set();
+				filters.filter((value,index) => {
+					set.add(value.TestDate);
+				});
 				
-				var days = filters.filter((value,index) => filters.indexOf(value.TestDate) === index);
+				var days = Array.from(set);
 				days.map(function(day){
 					var item = {};
 					item['Student'] = filters[0].FullName;
@@ -1760,6 +1764,7 @@ router.get('/getpersonaltestteacher', async (req,res) => {
 				
 			}
 		});
+		console.log(items);
 		res.send({status: 200, data: {headers: headers,items: items}});
 	}catch(err){
 		console.log(err);
