@@ -1481,24 +1481,25 @@ router.get('/getsubregistersavg',verifyToken,async (req, res) => {
 
 router.get('/getdayregisters',async(req,res) => {
 	try{
-		var date = new Date(req.query.date);
-
+		var dateFrom = new Date(req.query.dateFrom);
+		var dateTo = new Date(req.query.dateTo);
 		const query = `SELECT reg."Id", reg."GroupName", reg."Time", reg."LessonDate", reg."WeekDays",
-			reg."SubmitDay", reg."SubmitTime",reg."LevelTest",rom."Room",
-			CASE 
-				WHEN reg."GroupName" like '%RO%' THEN 'RO'
-				WHEN reg."GroupName" like '%KO%' THEN 'KO'
-			END AS "Branch", concat(teach."LastName",' ',teach."FirstName") as "FullName",
-			SUM(CASE WHEN subregAll."Pass" = :pass THEN 1 ELSE 0 END) as "Passed",COUNT(subregAll."Id") as "All", sch."Name"
-			FROM public."Registers" as reg
-			LEFT JOIN public."Teachers" as teach ON reg."TeacherId" = teach."TeacherId"
-			LEFT JOIN public."SubRegisters" as subregAll ON reg."Id" = subregAll."RegisterId"
-			LEFT JOIN public."Schools" as sch ON reg."SchoolId" = sch."SchoolId"
-			LEFT JOIN public."Rooms" as rom ON rom."Id" = reg."RoomId"
-			WHERE reg."LessonDate" = :date
-			GROUP BY reg."Id",teach."LastName",teach."FirstName",sch."Name",rom."Room";`;
+		reg."SubmitDay", reg."SubmitTime",reg."LevelTest",rom."Room",reg."Aibucks",
+		CASE 
+			WHEN reg."GroupName" like '%RO%' THEN 'RO'
+			WHEN reg."GroupName" like '%KO%' THEN 'KO'
+		END AS "Branch", concat(teach."LastName",' ',teach."FirstName") as "FullName", concat(subteach."LastName",' ',subteach."FirstName") as "SubFullName",
+		SUM(CASE WHEN subregAll."Pass" = :pass THEN 1 ELSE 0 END) as "Passed",COUNT(subregAll."Id") as "All", sch."Name"
+		FROM public."Registers" as reg
+		LEFT JOIN public."Teachers" as teach ON reg."TeacherId" = teach."TeacherId"
+		LEFT JOIN public."Teachers" as subteach ON reg."SubTeacherId" = subteach."TeacherId"
+		LEFT JOIN public."SubRegisters" as subregAll ON reg."Id" = subregAll."RegisterId"
+		LEFT JOIN public."Schools" as sch ON reg."SchoolId" = sch."SchoolId"
+		LEFT JOIN public."Rooms" as rom ON rom."Id" = reg."RoomId"
+		WHERE reg."LessonDate" BETWEEN :dateFrom AND :dateTo
+		GROUP BY reg."Id",teach."LastName",teach."FirstName",sch."Name",rom."Room",subteach."LastName",subteach."FirstName";`;
 		var registers = await sequelize.query(query,{
-			replacements:{date: date,pass:true},
+			replacements:{dateFrom: dateFrom,dateTo: dateTo, pass:true},
 			type: QueryTypes.SELECT
 		});
 
@@ -1706,8 +1707,8 @@ router.get('/getpersonaltestteacher', async (req,res) => {
 		var testId = req.query.testId;
 		var query = `SELECT DISTINCT sub."ClientId"
 		FROM "SubRegisters" as sub
-		LEFT JOIN "Registers" as registers ON registers."Id" = sub."RegisterId"
-		WHERE "TeacherId" = :teacherId AND "Change" = false OR "Change" IS NULL`;
+		LEFT JOIN "Registers" as reg ON sub."RegisterId" = reg."Id"
+		WHERE  reg."TeacherId" = :teacherId AND (reg."Change" = false OR reg."Change" IS NULL);`;
 
 		var students = await sequelize.query(query,{
 			replacements:{teacherId: teacherId},
