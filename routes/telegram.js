@@ -385,4 +385,19 @@ router.post('/upload', async (req,res) => {
 	
 });
 
+router.post('/uploadall', async (req,res) => {
+	try{
+		//console.log(req.body);
+		var json = req.body.data;
+		
+		
+		/*await TestResults.bulkCreate(arr,{
+			fields:['ClientId','TestSubjectId','Score','TestDate','SubmitDate']
+		});*/
+		//	bot.Intensiv(hash,telegrams);
+	}catch(err){
+		console.log(err);
+	}
+	
+});
 module.exports = router;

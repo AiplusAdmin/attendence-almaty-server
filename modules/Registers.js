@@ -63,13 +63,16 @@ const Registers = sequelize.define('Registers',{
 	},
 	Aibucks: {
 		type: Sequelize.INTEGER
-	}
-/*	TopicId: {
+	},
+	Fine: {
+		type: Sequelize.TEXT
+	},
+	TopicId: {
 		type: Sequelize.INTEGER
 	},
 	HomeWorkComment: {
 		type: Sequelize.TEXT
-	}*/
+	}
 });
 
 module.exports = Registers;

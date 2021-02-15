@@ -1,5 +1,6 @@
 
 var HashMap = require('hashmap');
+const xlsx = require('xlsx');
 
 function subjectName(subject){
     subject = subject.split('.');
@@ -668,6 +669,31 @@ function notificationMessage(group,student){
 	return globalmessage;
 }
 
+function getMentorNumber(students){
+	var workbook1 = xlsx.readFile('hh.xlsx',{cellDates: true});
+	var sheetName1 = workbook1.SheetNames[0];
+	var worksheet1 = workbook1.Sheets[sheetName1];
+	var dataHH = xlsx.utils.sheet_to_json(worksheet1);
+
+	var workbook2 = xlsx.readFile('mentor.xlsx',{cellDates: true});
+	var sheetName2 = workbook2.SheetNames[0];
+	var worksheet2 = workbook2.Sheets[sheetName2];
+	var dataM = xlsx.utils.sheet_to_json(worksheet2);
+
+	students.map(function(student){
+		var obj = dataHH.find(elem => elem['ИД клиента'] == student.clientid);
+		if(obj){
+			var mentor = dataM.find(elem => elem['Ответственный'] == obj['Ответственный']);
+			if(mentor){
+				student.mentor = mentor['Ответственный'];
+				student.tel = mentor['Номер'];
+			}
+		}
+	});
+
+	return students;
+}
+
 module.exports = {
 	subjectName,
 	getBranch,
@@ -676,5 +702,6 @@ module.exports = {
 	Capitalize,
 	messageDay,
 	notificationMessage,
-	personalMessage
+	personalMessage,
+	getMentorNumber
 }

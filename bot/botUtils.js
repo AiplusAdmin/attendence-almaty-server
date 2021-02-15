@@ -14,16 +14,19 @@ function buildDefaultButton(text, callback_data) {
 	}]
 }
 
-function buildUrlButton(text, url) {
+function buildUrlButtonOne(text, url) {
+	console.log('eto ya');
 	return {
 		reply_markup: JSON.stringify({
 			inline_keyboard: [
-			  [{ text: text,url: url }]		]
+			  [{ text: text,url: url }]
+			]
 		})
 	}
 }
 
 function buildUrlButton(obj) {
+	console.log('suka ya');
 	return {
 		reply_markup: JSON.stringify({
 			inline_keyboard: obj	
@@ -87,6 +90,7 @@ module.exports = {
 	getLastMessageText,
 	buildDefaultButton,
 	buildUrlButton,
+	buildUrlButtonOne,
 	buildShareButton,
 	buildMessageOptions,
 	buildMessageOptionsForVoting,

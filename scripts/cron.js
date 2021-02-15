@@ -51,12 +51,12 @@ function sleep(ms){
 }
 
 function sendTelegram(register,subregister){
-	var text = '';
 	var url = 'https://'+process.env.DOMAIN+'.t8s.ru/Learner/Group/'+register.GroupId;
 
 		subregister.map(async function(student){
 			if(student.Status && student.Pass){
 				if(student.ClientId == -1){
+					var text = '';
 					text = 'Дата урока: ' + register.LessonDate+'\n\n';
 					text += 'Найти и добавить ученика в группу\n Ученик: ' + student.FullName + ' в группу: Id: '+ register.GroupId + '\nГруппа: '+ register.GroupName+'\nПреподаватель: '+register.TeacherId+'\nВремя: ' + register.Time + '\nДни: '+ register.WeekDays+ '\n\n';
 					var com = student.Comment?student.Comment:'';
@@ -70,30 +70,9 @@ function sendTelegram(register,subregister){
 						throw error; // throw error further
 					}),process.env.OPERATOR_GROUP_CHATID,'telegramGroup');
 				} else {
-						text = 'Дата урока: ' + register.LessonDate+'\n\n';
-						text += 'Добавить Ученика: ' + student.FullName + ' в группу: Id: '+ register.GroupId + '\nГруппа: '+ register.GroupName+'\nПреподаватель: '+register.TeacherId+'\nВремя: ' + register.Time + '\nДни: '+ register.WeekDays+ '\n\n';
-						var com = student.Comment?student.Comment:'';
-						text += 'Аттендансе студента :\nФИО : ' + student.FullName + '\nД/з: ' + student.Homework + '\nСрез: ' + student.Test+'\nРанг: ' + student.Lesson+'\nКомментарии: ' + com+'\n\n\n';
-						queueBot.request((retry) => bot.telegram.sendMessage(process.env.OPERATOR_GROUP_CHATID,text,botUtils.buildUrlButton('Ссылка на группу',url))
-						.catch(error => {
-							console.log(error);
-							if (error.response.status === 429) { // We've got 429 - too many requests
-									return retry(error.response.data.parameters.retry_after) // usually 300 seconds
-							}
-							throw error; // throw error further
-						}),process.env.OPERATOR_GROUP_CHATID,'telegramGroup');
-				}
-			}
-		});
-}
-
-function sendTelegramIND(register,student){
-	var text = '';
-	var url = 'https://'+process.env.DOMAIN+'.t8s.ru/Learner/Group/'+register.GroupId;
-
-		
-	text = 'Дата урока: ' + register.LessonDate+'\n\n';
-	text += 'Найти и добавить ученика в группу\n Ученик: ' + student.FullName + ' в группу: Id: '+ register.GroupId + '\nГруппа: '+ register.GroupName+'\nПреподаватель: '+register.TeacherId+'\nВремя: ' + register.Time + '\nДни: '+ register.WeekDays+ '\n\n';
+					var text = '';
+					text = 'Дата урока: ' + register.LessonDate+'\n\n';
+					text += 'Добавить Ученика: ' + student.FullName + ' в группу: Id: '+ register.GroupId + '\nГруппа: '+ register.GroupName+'\nПреподаватель: '+register.TeacherId+'\nВремя: ' + register.Time + '\nДни: '+ register.WeekDays+ '\n\n';
 					var com = student.Comment?student.Comment:'';
 					text += 'Аттендансе студента :\nФИО : ' + student.FullName + '\nД/з: ' + student.Homework + '\nСрез: ' + student.Test+'\nРанг: ' + student.Lesson+'\nКомментарии: ' + com+'\n\n\n';
 					queueBot.request((retry) => bot.telegram.sendMessage(process.env.OPERATOR_GROUP_CHATID,text,botUtils.buildUrlButton('Ссылка на группу',url))
@@ -104,6 +83,27 @@ function sendTelegramIND(register,student){
 						}
 						throw error; // throw error further
 					}),process.env.OPERATOR_GROUP_CHATID,'telegramGroup');
+				}
+			}
+		});
+}
+
+function sendTelegramIND(register,student){
+	var text = '';
+	var url = 'https://'+process.env.DOMAIN+'.t8s.ru/Learner/Group/'+register.GroupId;
+	
+	text = 'Дата урока: ' + register.LessonDate+'\n\n';
+	text += 'Найти и добавить ученика в группу\n Ученик: ' + student.FullName + ' в группу: Id: '+ register.GroupId + '\nГруппа: '+ register.GroupName+'\nПреподаватель: '+register.TeacherId+'\nВремя: ' + register.Time + '\nДни: '+ register.WeekDays+ '\n\n';
+	var com = student.Comment?student.Comment:'';
+	text += 'Аттендансе студента :\nФИО : ' + student.FullName + '\nД/з: ' + student.Homework + '\nСрез: ' + student.Test+'\nРанг: ' + student.Lesson+'\nКомментарии: ' + com+'\n\n\n';
+	queueBot.request((retry) => bot.telegram.sendMessage(process.env.OPERATOR_GROUP_CHATID,text,botUtils.buildUrlButton('Ссылка на группу',url))
+	.catch(error => {
+		console.log(error);
+		if (error.response.status === 429) { // We've got 429 - too many requests
+			return retry(error.response.data.parameters.retry_after) // usually 300 seconds
+		}
+		throw error; // throw error further
+	}),process.env.OPERATOR_GROUP_CHATID,'telegramGroup');
 				
 }
 

@@ -39,6 +39,12 @@ const SubRegisters = sequelize.define('SubRegisters',{
 	},
 	RegisterId:{
 		type: Sequelize.BIGINT
+	},
+	isWatched: {
+		type: Sequelize.BOOLEAN
+	},
+	Aibucks: {
+		type: Sequelize.INTEGER
 	}
 });
 

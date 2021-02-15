@@ -53,7 +53,7 @@ function sendTelegramIND(data,groupId,student){
 	var url = `https://${process.env.DOMAIN}.t8s.ru/Learner/Group/${groupId}`;
 		
 	text = 'Дата урока: ' + data+'\n\n';
-	text += 'Найти и добавить ученика в группу\n Ученик: ' + student.FullName + ' в группу: Id: '+ groupId+'\n\n';
+	text += 'Найти и добавить ученика в группу\n Ученик: ' + student.FullName + ' в группу: \nId: '+ groupId+'\n\n';
 	var com = student.Comment?student.Comment:'';
 	text += 'Аттендансе студента :\nФИО : ' + student.FullName + '\nД/з: ' + student.Homework + '\nСрез: ' + student.Test+'\nРанг: ' + student.Lesson+'\nКомментарии: ' + com+'\n\n\n';
 	queueBot.request((retry) => bot.telegram.sendMessage(process.env.OPERATOR_GROUP_CHATID,text,botUtils.buildUrlButton('Ссылка на группу',url))

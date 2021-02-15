@@ -47,10 +47,10 @@ router.post('/', async (req,res) => {
 //update
 router.put('/:Id',async (req,res) => {
 	const {Id} = req.params;
-	const { TeacherId, GroupId, GroupName, Time, LessonDate, WeekDays, SubmitDay, SubmitTime, IsSubmitted, IsStudentAdd, IsOperator,SchoolId } = req.body;
+	const { TeacherId, GroupId, GroupName, Time, LessonDate, WeekDays, SubmitDay, SubmitTime, IsSubmitted, IsStudentAdd, IsOperator,SchoolId,Fine } = req.body;
 	try{
 		var registers = await Registers.findAll({
-			fields:['TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator','SchoolId'],
+			fields:['TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator','SchoolId','Fine'],
 			where: {
 				Id
 			}
@@ -69,7 +69,8 @@ router.put('/:Id',async (req,res) => {
 					IsSubmitted: IsSubmitted ? IsSubmitted : register.IsSubmitted,
 					IsStudentAdd: IsStudentAdd ? IsStudentAdd : register.IsStudentAdd,
 					IsOperator: IsOperator ? IsOperator : register.IsOperator,
-					SchoolId: SchoolId ? SchoolId : register.SchoolId
+					SchoolId: SchoolId ? SchoolId : register.SchoolId,
+					Fine: Fine ? Fine: register.Fine 
 				});	
 			});
 			res.json({
