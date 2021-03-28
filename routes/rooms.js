@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const { QueryTypes } = require('sequelize');
+
 
 const Rooms = require('../modules/Rooms');
-
+const sequelize = require('../databases/index').sequelize;
 //add
 router.post('/', async (req,res) => {
 	var { SchoolId,Room } = req.body;
@@ -39,19 +41,17 @@ router.put('/:id',async (req,res) => {
 	const {id} = req.params;
 	const { SchoolId,Room } = req.body;
 	try{
-		var rooms = await Rooms.findAll({
-			attributes: ['Id', 'SchoolId','Room', 'createdAt', 'updatedAt'],
+		var room = await Rooms.findOne({
+			attributes: ['Id', 'SchoolId','Room'],
 			where: {
 				Id: id
 			}
 		});
-		if(rooms.length > 0){
-			rooms.map(async (room) =>{
+		if(room){
 				await room.update({
 					SchoolId: SchoolId ? SchoolId : room.SchoolId,
 					Room: Room ? Room : room.Room
 				});	
-			});
 			res.json({
 				result: 'ok',
 				data: rooms,
@@ -100,8 +100,10 @@ router.delete('/:id', async (req,res) => {
 //query all data
 router.get('/', async (req,res) => {
 	try{
-		const rooms = await Rooms.findAll({
-			attributes: ['Id', 'SchoolId','Room', 'createdAt', 'updatedAt']
+		const query = `SELECT rm."Id",sch."Name" as "School",rm."Room"
+		FROM public."Rooms" as rm LEFT JOIN public."Schools" as sch ON sch."SchoolId" = rm."SchoolId"`;
+		const rooms = await sequelize.query(query,{
+			type: QueryTypes.SELECT
 		});
 		res.json({
 			result: 'ok',

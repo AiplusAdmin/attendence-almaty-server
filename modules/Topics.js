@@ -31,6 +31,9 @@ const Topics = sequelize.define('Topics',{
 	},
 	LevelId:{
 		type: Sequelize.INTEGER
+	},
+	Priority:{
+		type: Sequelize.INTEGER
 	}
 });
 

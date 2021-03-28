@@ -5,7 +5,7 @@ const Schools = require('../modules/Schools');
 
 //add
 router.post('/', async (req,res) => {
-	var { Name,Location,SchoolId } = req.body;
+	var { Name,Address,SchoolId } = req.body;
 	try{
 		var newSchool = await Schools.create({
 			Name,
@@ -38,25 +38,23 @@ router.post('/', async (req,res) => {
 //update
 router.put('/:id',async (req,res) => {
 	const {id} = req.params;
-	const { Name,Location,SchoolId } = req.body;
+	const { Name,Address,SchoolId } = req.body;
 	try{
-		var schools = await Roles.findAll({
-			attributes: ['Id', 'Name', 'Address', 'SchoolId', 'createdAt', 'updatedAt'],
+		var school = await Schools.findOne({
+			attributes: ['Id', 'Name', 'Address', 'SchoolId'],
 			where: {
 				Id: id
 			}
 		});
-		if(schools.length > 0){
-			schools.map(async (school) =>{
-				await schools.update({
+		if(school){
+				await school.update({
 					Name: Name ? Name : school.Name,
-					Location: Address ? Address: school.Address,
+					Address: Address ? Address: school.Address,
 					SchoolId: SchoolId ? SchoolId : school.SchoolId
 				});	
-			});
 			res.json({
 				result: 'ok',
-				data: schools,
+				data: school,
 				message: "Обновление школ прошла успешна"
 			});
 		} else {

@@ -9,9 +9,9 @@ const sequelize = new Sequelize(
 		host: process.env.DB_HOST,
 		dialect: 'postgres',
 		pool: {
-			max: 10,
+			max: 5,
 			min: 0,
-			acquire: 50000,
+			acquire: 60000,
 			idle: 10000
 		}
 	}

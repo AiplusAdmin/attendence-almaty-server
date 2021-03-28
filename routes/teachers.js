@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
+const { QueryTypes } = require('sequelize');
 
 const Teachers = require('../modules/Teachers');
 const Contacts = require('../modules/Contacts');
+const sequelize = require('../databases/index').sequelize;
 const generateKey = require('../scripts/generateKeys');
 //add
 router.post('/', async (req,res) => {
@@ -48,27 +50,37 @@ router.post('/', async (req,res) => {
 //update
 router.put('/:Id',async (req,res) => {
 	const {Id} = req.params;
-	const { FirstName,LastName,MiddleName,ContactId,Email} = req.body;
+	const { FirstName,LastName,MiddleName,ContactId,Email,Mobile, Phone, Mail, Address} = req.body;
 	try{
-		var teachers = await Teachers.findAll({
-			attributes: ['Id','FirstName','LastName','MiddleName','ContactId','Email'],
+		var teacher = await Teachers.findOne({
+			attributes: ['Id','FirstName','LastName','MiddleName','Email'],
 			where: {
 				Id
 			}
 		});
-		if(teachers.length > 0){
-			teachers.map(async (teacher) =>{
-				await teacher.update({
-					FirstName: FirstName ? FirstName : teacher.FirstName,
-					LastName: LastName ? LastName : teacher.LastName,
-					MiddleName: MiddleName ? MiddleName : teacher.MiddleName,
-					ContactId: ContactId ? ContactId : teacher.ContactId,
-					Email: Email ? Email : teacher.Email
-				});	
+		if(teacher){
+			await teacher.update({
+				FirstName: FirstName ? FirstName : teacher.FirstName,
+				LastName: LastName ? LastName : teacher.LastName,
+				MiddleName: MiddleName ? MiddleName : teacher.MiddleName,
+				Email: Email ? Email : teacher.Email
+			});	
+			var contact = await Contacts.findOne({
+				attributes: ['Id','Mobile','Phone','Email','Address'],
+				where: {
+					Id: ContactId
+				}
 			});
+			await contact.update({
+				Mobile: Mobile ? Mobile : contact.Mobile,
+				Phone: Phone ? Phone : contact.Phone,
+				Email: Mail ? Mail : contact.Email,
+				Address: Address ? Address : contact.Address
+			});	
+
 			res.json({
 				result: 'ok',
-				data: teachers,
+				data: teacher,
 				message: "Обновление Преподователя прошла успешна"
 			});
 		} else {
@@ -79,6 +91,7 @@ router.put('/:Id',async (req,res) => {
 			});
 		} 
 	}catch(error){
+		console.log(error);
 		res.json({
 			result: 'failed',
 			data: {},
@@ -92,6 +105,19 @@ router.put('/:Id',async (req,res) => {
 router.delete('/:id', async (req,res) => {
 	const { id } = req.params;
 	try{
+		var teacher = await Teachers.findOne({
+			attributes: ['ContactId'],
+			where: {
+				Id: id
+			}
+		});
+
+		Contacts.destroy({
+			where: {
+				Id: teacher.ContactId
+			}
+		});
+
 		var deletedRows = await Teachers.destroy({
 			where: {
 				Id: id
@@ -113,7 +139,6 @@ router.delete('/:id', async (req,res) => {
 
 //delete
 router.delete('/', async (req,res) => {
-	const { id } = req.params;
 	try{
 		var teachers = await Teachers.findAll({
 			attributes: ["Id", "ContactId"]
@@ -145,9 +170,12 @@ router.delete('/', async (req,res) => {
 //query all data
 router.get('/', async (req,res) => {
 	try{
-		const teachers = await Teachers.findAll({
-			attributes: ['Id','FirstName','LastName','MiddleName','ContactId','Email'],
+		const query = `SELECT tch."Id",tch."TeacherId",tch."FirstName",tch."LastName",tch."MiddleName",tch."Email",ct."Id" as "ContactId",ct."Mobile",ct."Phone",ct."Email" as "Mail",ct."Address"
+		FROM public."Teachers" as tch LEFT JOIN public."Contacts" as ct ON ct."Id" = tch."ContactId"`;
+		const teachers = await sequelize.query(query,{
+			type: QueryTypes.SELECT
 		});
+
 		res.json({
 			result: 'ok',
 			data: teachers,

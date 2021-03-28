@@ -222,6 +222,9 @@ router.post('/groups',verifyToken, (req, res) => {
 					group.teacher = response.data[i].ScheduleItems[j].Teacher;
 					group.time = response.data[i].ScheduleItems[j].BeginTime + '-' + response.data[i].ScheduleItems[j].EndTime;
 					group.days = Weekdays(response.data[i].ScheduleItems[j].Weekdays);
+					var array = gr.days.split(',');
+					gr.inweek = array.length;
+					console.log(gr.inweek);
 					group.weekdays = response.data[i].ScheduleItems[j].Weekdays;
 					res.json({status: 200,data: group});
 				} else {
@@ -258,23 +261,27 @@ router.post('/officegoups',verifyToken, (req, res) => {
         .then((response) => {
             if(response.status === 200){
 				var officegroups = [];
-				response.data.map(function(groups,i){
-					groups.ScheduleItems.map(function(ScheduleItem,j){
-						var group = new Object();
-						group.Id = response.data[i].Id;
-						group.name = response.data[i].Name;
-						group.subject = support.Capitalize(support.subjectName(response.data[i].Name));
-						group.symbol = support.getSubject(response.data[i].Name);
-						group.branch = support.getBranch(response.data[i].Name);
-						group.klass = support.getClass(response.data[i].Name);
-						group.teacher = response.data[i].ScheduleItems[j].Teacher;
-						group.begin = response.data[i].ScheduleItems[j].BeginTime;
-						group.end =  response.data[i].ScheduleItems[j].EndTime;
-						group.time = response.data[i].ScheduleItems[j].BeginTime + '-' + response.data[i].ScheduleItems[j].EndTime;
-						group.days = Weekdays(response.data[i].ScheduleItems[j].Weekdays);
-						group.weekdays = response.data[i].ScheduleItems[j].Weekdays;
-						officegroups.push(group);
+				response.data.map(function(group){
+					var gr = new Object();
+					gr.Id = group.Id;
+					gr.name = group.Name;
+					gr.subject = support.Capitalize(support.subjectName(group.Name));
+					gr.symbol = support.getSubject(group.Name);
+					gr.branch = support.getBranch(group.Name);
+					gr.klass = support.getClass(group.Name);
+						
+					group.ScheduleItems.map(function(ScheduleItem){
+						
+						gr.teacher = ScheduleItem.Teacher;
+						gr.begin = ScheduleItem.BeginTime;
+						gr.end =  ScheduleItem.EndTime;
+						gr.time = ScheduleItem.BeginTime + '-' + ScheduleItem.EndTime;
+						gr.days = Weekdays(ScheduleItem.Weekdays);
+						var array = gr.days.split(',');
+						gr.inweek = array.length;
+						gr.weekdays = ScheduleItem.Weekdays;
 					});
+					officegroups.push(gr);
 				});
 				officegroups.sort(compareTime);
 
@@ -304,6 +311,7 @@ router.post('/groupstudents',verifyToken, (req, res) => {
 			data: []
 		});
 	} else {
+		console.log(req.body);
 		var params = 'edUnitId=' + req.body.groupId;
 		api.get(key.domain,'GetEdUnitStudents',params,key.apikey)
 			.then(async (response) => {
@@ -325,6 +333,14 @@ router.post('/groupstudents',verifyToken, (req, res) => {
 
 								var hh = await api.get(key.domain,'GetStudents','clientId='+student.StudentClientId,key.apikey);
 								var fields = hh.data[0].ExtraFields?hh.data[0].ExtraFields:[];
+								if(hh.data[0].VisitDateTime){
+									var date1 = new Date(hh.data[0].VisitDateTime);
+									var date2 = new Date(req.body.date);
+									const diffTime = Math.abs(date2 - date1);
+									const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+									obj.lessonleft = Math.ceil(diffDays*req.body.inweek/7);
+								}
+
 								obj.dynamics = [];
 								
 								fields.map(field => {
@@ -438,6 +454,7 @@ router.post('/groupstudents',verifyToken, (req, res) => {
 				}
 			})
 			.catch(err =>{
+				console.log(err);
 				res.json({
 					status: 410,
 					data: []
@@ -1078,17 +1095,21 @@ router.post('/addroomexample', (req, res) => {
 //add topics 
 router.post('/addtopicsexample',(req,res) => {
 	try{
-		var workbook = xlsx.readFile('7 класс темы.xlsx',{cellDates: true});
+		console.log('hey');
+
+		var workbook = xlsx.readFile('xlsx.xlsx',{cellDates: true});
 		var sheetName = workbook.SheetNames[0];
 		var worksheet = workbook.Sheets[sheetName];
 		var data = xlsx.utils.sheet_to_json(worksheet);
+		console.log(data);
 		data.map(async function(record){
 			try{
 				var Class = record['Класс'].toString();
 				var Name = record['Темы'];
 				var SubjectId = record['Предмет'];
-				var Branch = record['Отделение'];
+				var Branch = record['Отделение'].trim();
 				var LevelId = record['Уровень'] ? record['Уровень']:null;
+				var Priority = record['Счет'];
 				console.log(record);
 				var topic = await Topics.findOne({
 					attributes: ['Id','Class','Name','SubjectId','Branch','LevelId'],
@@ -1106,13 +1127,17 @@ router.post('/addtopicsexample',(req,res) => {
 						Name,
 						SubjectId,
 						Branch,
-						LevelId
+						LevelId,
+						Priority
 					},{
-						fields: ['Class','Name','SubjectId','Branch','LevelId'],
+						fields: ['Class','Name','SubjectId','Branch','LevelId','Priority'],
 					});
 					console.log('Добавили');
 				} else {
-					console.log('Есть');
+					topic.update({
+						Priority: Priority,
+						Branch: Branch
+					});
 				}
 			}catch(error){
 				console.log(error);
@@ -1732,19 +1757,19 @@ router.get('/gettopics',async (req,res) => {
 		var query = ``;
 		var topics = [];
 		if(LevelId){
-			query = `SELECT tp."Id", ROW_NUMBER() OVER() || '. ' || tp."Name" as "Name"
+			query = `SELECT tp."Id", tp."Priority" || '. ' || tp."Name" as "Name"
 			FROM public."Topics" as tp
 			LEFT JOIN public."Subjects" as sbj ON  tp."SubjectId" = sbj."Id"
-			WHERE tp."Class" = :Class AND (tp."Branch" = :Branch OR tp."Branch" = 'КОРО') AND tp."LevelId" = :LevelId AND sbj."Name" = :SubjectName;`
+			WHERE tp."Class" = :Class AND (tp."Branch" = :Branch OR tp."Branch" = 'КОРО') AND tp."LevelId" = :LevelId AND sbj."Name" = :SubjectName ORDER BY tp."Priority";`
 			topics =  await sequelize.query(query,{
 				replacements:{Class: Class,Branch:Branch,LevelId:LevelId,SubjectName:SubjectName},
 				type: QueryTypes.SELECT
 			});
 		} else {
-			query = `SELECT tp."Id", ROW_NUMBER() OVER() || '. ' || tp."Name" as "Name"
+			query = `SELECT tp."Id", tp."Priority" || '. ' || tp."Name" as "Name"
 			FROM public."Topics" as tp
 			LEFT JOIN public."Subjects" as sbj ON  tp."SubjectId" = sbj."Id"
-			WHERE tp."Class" = :Class AND (tp."Branch" = :Branch OR tp."Branch" = 'КОРО') AND tp."LevelId" is NULL AND sbj."Name" = :SubjectName;`
+			WHERE tp."Class" = :Class AND (tp."Branch" = :Branch OR tp."Branch" = 'КОРО') AND tp."LevelId" is NULL AND sbj."Name" = :SubjectName ORDER BY tp."Priority";`
 			topics =  await sequelize.query(query,{
 				replacements:{Class: Class,Branch:Branch,SubjectName:SubjectName},
 				type: QueryTypes.SELECT
@@ -1827,6 +1852,40 @@ router.get('/getpersonaltestteacher', async (req,res) => {
 		});
 		console.log(items);
 		res.send({status: 200, data: {headers: headers,items: items}});
+	}catch(err){
+		console.log(err);
+	}
+});
+
+router.get('/gettablecolumns', async (req,res) => {
+	try{
+		var table = req.query.Table;
+		
+		var query = `SELECT column_name,data_type FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = :table;`;
+
+		var columns = await sequelize.query(query,{
+			replacements:{table: table},
+			type: QueryTypes.SELECT
+		});  
+		var headers = [];
+		columns.map(function(column){
+			headers.push({
+				text: column.column_name,
+				value: column.column_name
+			});
+		});
+
+		headers.push({
+			text: 'Actions', 
+			value: 'actions'
+		});
+
+		query = `SELECT * FROM public."${table}";`;
+
+		var items = await sequelize.query(query,{
+			type: QueryTypes.SELECT
+		}); 
+		res.send({status: 200, data: {headers:headers, items: items}});
 	}catch(err){
 		console.log(err);
 	}

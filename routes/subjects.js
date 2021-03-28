@@ -38,21 +38,19 @@ router.put('/:id',async (req,res) => {
 	const {id} = req.params;
 	const { Name } = req.body;
 	try{
-		var subjects = await Subjects.findAll({
-			attributes: ['Id', 'Name', 'createdAt', 'updatedAt'],
+		var subject = await Subjects.findOne({
+			attributes: ['Id', 'Name'],
 			where: {
 				Id: id
 			}
 		});
-		if(subjects.length > 0){
-			subjects.map(async (subject) =>{
+		if(subject){
 				await subject.update({
 					Name: Name ? Name : subject.Name
 				});	
-			});
 			res.json({
 				result: 'ok',
-				data: subjects,
+				data: subject,
 				message: "Обновление предмета прошла успешна"
 			});
 		} else {
@@ -99,7 +97,7 @@ router.delete('/:id', async (req,res) => {
 router.get('/', async (req,res) => {
 	try{
 		const subjects = await Subjects.findAll({
-			attributes: ['Id','Name','createdAt','updatedAt']
+			attributes: ['Id','Name']
 		});
 		res.json({
 			result: 'ok',

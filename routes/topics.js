@@ -1,16 +1,22 @@
 const express = require('express');
 const router = express.Router();
+const { QueryTypes } = require('sequelize');
 
 const Topics = require('../modules/Topics');
-
+const sequelize = require('../databases/index').sequelize;
 //add
 router.post('/', async (req,res) => {
-	var { Name,Class } = req.body;
+	var { Name,Class,Branch,LevelId,Priority,SubjectId } = req.body;
 	try{
 		var newTopic = await Topics.create({
-			Name
+			Name,
+			Class,
+			Branch,
+			LevelId,
+			Priority,
+			SubjectId
 		},{
-			fields: ['Name','Class'],
+			fields: ['Name','Class','Branch','LevelId','Priority','SubjectId'],
 		});
 		if(newTopic){
 			res.json({
@@ -36,24 +42,26 @@ router.post('/', async (req,res) => {
 //update
 router.put('/:id',async (req,res) => {
 	const {id} = req.params;
-	const { Name,Class } = req.body;
+	const { Name,Class,Branch,LevelId,Priority,SubjectId  } = req.body;
 	try{
-		var topics = await Topics.findAll({
-			attributes: ['Id', 'Name','Class','createdAt', 'updatedAt'],
+		var topic = await Topics.findOne({
+			attributes: ['Id','Name','Class','Branch','LevelId','Priority','SubjectId'],
 			where: {
 				Id: id
 			}
 		});
-		if(topics.length > 0){
-			topics.map(async (topic) =>{
-				await role.update({
+		if(topic){
+				await topic.update({
 					Name: Name ? Name : topic.Name,
-					Name: Class ? Class : topic.Class
+					Class: Class ? Class : topic.Class,
+					Branch: Branch ? Branch : topic.Branch,
+					LevelId: LevelId ? LevelId : topic.LevelId,
+					Priority: Priority ? Priority : topic.Priority,
+					SubjectId: SubjectId ? SubjectId : topic.SubjectId,
 				});	
-			});
 			res.json({
 				result: 'ok',
-				data: topics,
+				data: topic,
 				message: "Обновление темы прошла успешна"
 			});
 		} else {
@@ -99,8 +107,13 @@ router.delete('/:id', async (req,res) => {
 //query all data
 router.get('/', async (req,res) => {
 	try{
-		const topics = await Topics.findAll({
-			attributes: ['Id','Name','Class','createdAt','updatedAt']
+		const query = `SELECT tp."Id", tp."Name", tp."Class",tp."Branch", tp."Priority", sb."Name" as "Subject", lvl."Name" as "Level"
+		FROM public."Topics" as tp
+		LEFT JOIN public."Subjects" as sb ON sb."Id" = tp."SubjectId"
+		LEFT JOIN public."Levels" as lvl ON lvl."Id" = tp."LevelId"`;
+
+		const topics = await sequelize.query(query,{
+			type: QueryTypes.SELECT
 		});
 		res.json({
 			result: 'ok',
@@ -108,6 +121,7 @@ router.get('/', async (req,res) => {
 			message: 'Выгрузка всех данных успешно'
 		});
 	}catch(error){
+		console.log(error);
 		res.json({
 			result: 'failed',
 			data: [],
