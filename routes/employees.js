@@ -61,14 +61,15 @@ router.post('/', async (req,res) => {
 //update
 router.put('/:Id',async (req,res) => {
 	const {Id} = req.params;
-	const { FirstName,LastName,MiddleName,RoleId,Email} = req.body;
+	const { FirstName,LastName,MiddleName,RoleId,Email,password} = req.body;
 	try{
 		var employees = await Employees.findAll({
-			attributes: ['Id','FirstName','LastName','MiddleName','RoleId','Email'],
+			attributes: ['Id','FirstName','LastName','MiddleName','RoleId','Email','Password'],
 			where: {
 				Id
 			}
 		});
+		var Password = await bcrypt.hash(password,10); 
 		if(employees.length > 0){
 			employees.map(async (employee) =>{
 				await employee.update({
@@ -76,7 +77,8 @@ router.put('/:Id',async (req,res) => {
 					LastName: LastName ? LastName : employee.LastName,
 					MiddleName: MiddleName ? MiddleName : employee.MiddleName,
 					RoleId: RoleId ? RoleId : employee.RoleId,
-					Email: Email ? Email : employee.Email
+					Email: Email ? Email : employee.Email,
+					Password: Password? Password: employee.Password
 				});	
 			});
 			res.json({

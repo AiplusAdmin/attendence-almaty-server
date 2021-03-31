@@ -1,6 +1,7 @@
 
 var HashMap = require('hashmap');
 const xlsx = require('xlsx');
+const path = require('path');
 
 function subjectName(subject){
     subject = subject.split('.');
@@ -347,6 +348,21 @@ function getBranch(subject){
 		return 'КО';
 }
 
+function getWeekDay(day){
+	var dt = new Date(day);
+
+    var weekday = new Array(7);
+    weekday[0] = "Вс";
+    weekday[1] = "Рн";
+    weekday[2] = "Вт";
+    weekday[3] = "Ср";
+    weekday[4] = "Чт";
+    weekday[5] = "Пт";
+    weekday[6] = "Сб";
+    
+    return weekday[dt.getDay()];
+}
+
 function getClass(subject){
 	var gr = subject.split('.');
 	var klass = gr[0] == 'IND' ? gr[2]:gr[1] == 'N'?gr[2]:gr[1];
@@ -670,12 +686,12 @@ function notificationMessage(group,student){
 }
 
 function getMentorNumber(students){
-	var workbook1 = xlsx.readFile('hh.xlsx',{cellDates: true});
+	var workbook1 = xlsx.readFile(path.join(__dirname,'../hh.xlsx'),{cellDates: true});
 	var sheetName1 = workbook1.SheetNames[0];
 	var worksheet1 = workbook1.Sheets[sheetName1];
 	var dataHH = xlsx.utils.sheet_to_json(worksheet1);
 
-	var workbook2 = xlsx.readFile('mentor.xlsx',{cellDates: true});
+	var workbook2 = xlsx.readFile(path.join(__dirname,'../mentor.xlsx'),{cellDates: true});
 	var sheetName2 = workbook2.SheetNames[0];
 	var worksheet2 = workbook2.Sheets[sheetName2];
 	var dataM = xlsx.utils.sheet_to_json(worksheet2);
@@ -704,5 +720,6 @@ module.exports = {
 	messageDay,
 	notificationMessage,
 	personalMessage,
-	getMentorNumber
+	getMentorNumber,
+	getWeekDay
 }

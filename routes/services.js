@@ -223,9 +223,9 @@ router.post('/groups',verifyToken, (req, res) => {
 					group.time = response.data[i].ScheduleItems[j].BeginTime + '-' + response.data[i].ScheduleItems[j].EndTime;
 					group.days = Weekdays(response.data[i].ScheduleItems[j].Weekdays);
 					var array = gr.days.split(',');
-					gr.inweek = array.length;
-					console.log(gr.inweek);
+					group.inweek = array.length;
 					group.weekdays = response.data[i].ScheduleItems[j].Weekdays;
+					
 					res.json({status: 200,data: group});
 				} else {
 					res.json({status: 200,data:{}});
@@ -305,14 +305,15 @@ router.post('/officegoups',verifyToken, (req, res) => {
 
 //Get Student in Group
 router.post('/groupstudents',verifyToken, (req, res) => {
-	if(req.body.groupId == undefined){
+	if(req.body.group.Id == undefined){
 		res.json({
 			status: 401,
 			data: []
 		});
 	} else {
+		
 		console.log(req.body);
-		var params = 'edUnitId=' + req.body.groupId;
+		var params = 'edUnitId=' + req.body.group.Id;
 		api.get(key.domain,'GetEdUnitStudents',params,key.apikey)
 			.then(async (response) => {
 				if(response.status === 200){
@@ -321,7 +322,7 @@ router.post('/groupstudents',verifyToken, (req, res) => {
 					await response.data.reduce(async (previousPromise,student) => {
 						await previousPromise;
 						return new Promise(async function(resolve,reject){
-							if((student.StudyUnits == undefined && student.BeginDate <= req.body.date) || student.EndDate >= req.body.date){
+							if((student.StudyUnits == undefined && student.BeginDate <= req.body.group.date) || student.EndDate >= req.body.group.date){
 								
 								var obj = new Object();
 								obj.clientid = student.StudentClientId;
@@ -335,10 +336,17 @@ router.post('/groupstudents',verifyToken, (req, res) => {
 								var fields = hh.data[0].ExtraFields?hh.data[0].ExtraFields:[];
 								if(hh.data[0].VisitDateTime){
 									var date1 = new Date(hh.data[0].VisitDateTime);
-									var date2 = new Date(req.body.date);
-									const diffTime = Math.abs(date2 - date1);
-									const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-									obj.lessonleft = Math.ceil(diffDays*req.body.inweek/7);
+									var date2 = new Date(req.body.group.date);
+									const diffTime = date1.getTime() - date2.getTime();
+									if(diffTime <= 0)
+										obj.lessonleft = 0;
+									else {
+										var array = req.body.group.days.split(',');
+										var d = array.findIndex(el => el == support.getWeekDay(req.body.group.date));
+										const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+										var inweek = Math.round(diffDays/7);
+										obj.lessonleft = (inweek*req.body.group.inweek) - d;
+									}
 								}
 
 								obj.dynamics = [];
@@ -980,7 +988,7 @@ router.post('/addtogroup', (req, res) => {
 
 //add students from hh
 router.post('/addstudentexample', (req, res) => {
-	var params = "statuses="+encodeURIComponent('АДАПТАЦИОННЫЙ ПЕРИОД,Занимается,Заморозка,Регистрация');
+	var params = "take=7000&statuses="+encodeURIComponent('АДАПТАЦИОННЫЙ ПЕРИОД,Занимается,Заморозка,Регистрация');
 	api.get(key.domain,'GetStudents',params,key.apikey)
 	.then((data) => {
         data.data.map(async function(record){
@@ -1024,7 +1032,7 @@ router.post('/addstudentexample', (req, res) => {
 
 //add offices from hh
 router.post('/addofficeexample', (req, res) => {
-	api.get(key.domain,'GetOffices','',key.apikey)
+	api.get(key.domain,'GetOffices','take=7000',key.apikey)
 	.then((data) => {
         data.data.map(async function(record){
 			try{
@@ -1058,7 +1066,7 @@ router.post('/addofficeexample', (req, res) => {
 
 //add rooms to attendance online
 router.post('/addroomexample', (req, res) => {
-	var workbook = xlsx.readFile('алматы кабинеты.xlsx',{cellDates: true});
+	var workbook = xlsx.readFile(path.join(__dirname,'../алматы кабинеты.xlsx'),{cellDates: true});
 	var sheetName = workbook.SheetNames[0];
 	var worksheet = workbook.Sheets[sheetName];
 	var data = xlsx.utils.sheet_to_json(worksheet);
@@ -1097,7 +1105,7 @@ router.post('/addtopicsexample',(req,res) => {
 	try{
 		console.log('hey');
 
-		var workbook = xlsx.readFile('xlsx.xlsx',{cellDates: true});
+		var workbook = xlsx.readFile(path.join(__dirname,'../xlsx.xlsx'),{cellDates: true});
 		var sheetName = workbook.SheetNames[0];
 		var worksheet = workbook.Sheets[sheetName];
 		var data = xlsx.utils.sheet_to_json(worksheet);
@@ -1152,7 +1160,7 @@ router.post('/addtopicsexample',(req,res) => {
 
 
 router.post('/addteacherexample', (req, res) => {
-   api.get(key.domain,'GetTeachers','',key.apikey)
+   api.get(key.domain,'GetTeachers','take=7000',key.apikey)
    .then((data) => {
         data.data.map(async function(record){
 				try{

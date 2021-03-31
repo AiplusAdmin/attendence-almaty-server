@@ -363,10 +363,14 @@ router.post('/upload', async (req,res) => {
 				}
 			});
 			var keys = hash.keys();
-			var query = `SELECT st."LastName" || ' ' || st."FirstName" as "FullName",st."StudentId",st."ClientId",tgst."ChatId"
+			/*var query = `SELECT st."LastName" || ' ' || st."FirstName" as "FullName",st."StudentId",st."ClientId",tgst."ChatId"
 			FROM public."Students" as st 
 			LEFT JOIN public."TelegramStudents" as tgst ON tgst."ClientId" = st."ClientId"
+			WHERE st."StudentId" IN (:students)`;*/
+			var query = `SELECT st."LastName" || ' ' || st."FirstName" as "FullName",st."StudentId",st."ClientId"
+			FROM public."Students" as st 
 			WHERE st."StudentId" IN (:students)`;
+
 			var telegrams = await sequelize.query(query,{
 				replacements:{students: keys},
 				type: QueryTypes.SELECT
