@@ -120,6 +120,25 @@ function compareTime(time1,time2){
 			return 0
 	}
 }
+
+function sendTelegramIND(register,student){
+	var text;
+	var url = 'https://'+process.env.DOMAIN+'.t8s.ru/Learner/Group/'+register.GroupId;
+	text = 'НЕ СДЕЛАННАЯ ЗАДАЧА !!!\n';
+	text += '\nДата урока: ' + register.LessonDate+'\n\n';
+	text += 'Найти и добавить ученика в группу\n Ученик: ' + student.FullName + ' в группу: Id: '+ register.GroupId + '\nГруппа: '+ register.GroupName+'\nПреподаватель: '+register.TeacherId+'\nВремя: ' + register.Time + '\nДни: '+ register.WeekDays+ '\n\n';
+	var com = student.Comment?student.Comment:'';
+	text += 'Аттендансе студента :\nФИО : ' + student.FullName + '\nД/з: ' + student.Homework + '\nСрез: ' + student.Test+'\nРанг: ' + student.Lesson+'\nКомментарии: ' + com+'\n\n\n';
+	queueBot.request((retry) => bot.telegram.sendMessage(process.env.OPERATOR_GROUP_CHATID,text,botUtils.buildUrlButtonOne('Ссылка на группу',url))
+	.catch(error => {
+		console.log(error);
+		if (error.response.status === 429) { // We've got 429 - too many requests
+			return retry(error.response.data.parameters.retry_after) // usually 300 seconds
+		}
+		throw error; // throw error further
+	}),process.env.OPERATOR_GROUP_CHATID,'telegramGroup');		
+}
+
 //Get Offices
 router.get('/offices',verifyToken, (req, res) => {
     api.get(this.key.domain,'GetOffices','',this.key.apikey)
@@ -162,16 +181,14 @@ router.post('/login', async (req, res) => {
 				exipersIn = "30 days";
 			else 
 				exipersIn = "12h";
-			const token = jwt.sign({_id: user.teacherId}, user.authkey,{expiresIn: exipersIn});
-			res.set('ACCESSTOKEN',token);
-			res.set('AUTHTOKEN',user.authkey);
+			const token = jwt.sign({_id: user.teacherId}, process.env.SECRET_KEY,{expiresIn: exipersIn});
+			res.header('Authorization',token);
 			console.log(user);
 			res.json({
 				status: 200, 
 				data: {
 					teacherId: user.teacherId,
 					roleId: user.roleId, 
-					authtoken: user.authkey, 
 					accesstoken: token,
 					firstname: user.firstname,
 					lastname: user.lastname
@@ -222,7 +239,7 @@ router.post('/groups',verifyToken, (req, res) => {
 					group.teacher = response.data[i].ScheduleItems[j].Teacher;
 					group.time = response.data[i].ScheduleItems[j].BeginTime + '-' + response.data[i].ScheduleItems[j].EndTime;
 					group.days = Weekdays(response.data[i].ScheduleItems[j].Weekdays);
-					var array = gr.days.split(',');
+					var array = group.days.split(',');
 					group.inweek = array.length;
 					group.weekdays = response.data[i].ScheduleItems[j].Weekdays;
 					
@@ -690,40 +707,53 @@ router.post('/setattendence', async (req, res) => {
 								throw error; // throw error further
 							}),process.env.OPERATOR_GROUP_CHATID,'telegramGroup');
 						}
-					
+						
+						
+						var deleteStudents = [];
+						var addStudents = [];
 						students.map(async function(student){
 							if(student.delete){
-								var url = `https://${process.env.DOMAIN}.t8s.ru/Learner/Group/${group.Id}`;
-								var text = '';
-								text = 'Дата урока: ' + group.date+'\n\n';
-								text += 'Убрать ученик с группы\n Ученик: ' + student.name + ' с группы: \nId: '+ group.Id + '\nГруппа: '+group.name+'\nПреподаватель: '+group.teacher+'\nВремя: ' + group.time + '\nДни: '+ group.days+ '\n\n';
-								queueBot.request((retry) => bot.telegram.sendMessage(process.env.OPERATOR_GROUP_CHATID,text,botUtils.buildUrlButtonOne('Ссылка на группу',url))
-								.catch(error => {
-									console.log(error);
-									if (error.response.status === 429) { // We've got 429 - too many requests
-											return retry(error.response.data.parameters.retry_after) // usually 300 seconds
-									}
-									throw error; // throw error further
-								}),process.env.OPERATOR_GROUP_CHATID,'telegramGroup');
+								deleteStudents.push(student.name);
 							}
 							
 							if(student.status && student.attendence){
-								var url = `https://${process.env.DOMAIN}.t8s.ru/Learner/Group/${group.Id}`;
-								var text = '';
-								text = 'Дата урока: ' + group.date+'\n\n';
-								text += 'Найти и добавить ученика в группу\n Ученик: ' + student.name + ' в группу: \nId: '+ group.Id + '\nГруппа: '+ group.name+'\nПреподаватель: '+group.teacher+'\nВремя: ' + group.time + '\nДни: '+ group.days+ '\n\n';
-								var com = student.comment?student.comment:'';
-								text += 'Аттендансе студента :\nФИО : ' + student.name + '\nД/з: ' + student.homework + '\nСрез: ' + student.test+'\nРанг: ' + student.lesson+'\nКомментарии: ' + com+'\n\n\n';
-								queueBot.request((retry) => bot.telegram.sendMessage(process.env.OPERATOR_GROUP_CHATID,text,botUtils.buildUrlButtonOne('Ссылка на группу',url))
-								.catch(error => {
-									console.log(error);
-									if (error.response.status === 429) { // We've got 429 - too many requests
-										return retry(error.response.data.parameters.retry_after) // usually 300 seconds
-									}
-									throw error; // throw error further
-								}),process.env.OPERATOR_GROUP_CHATID,'telegramGroup');
+								addStudents.push(student.name)
 							}
 						});
+						await sleep(1000);
+						if(deleteStudents.length > 0){
+							var text = '';
+							var url = `https://${process.env.DOMAIN}.t8s.ru/Learner/Group/${group.Id}`;
+							text = 'Дата урока: ' + group.date+'\n\n';
+							text += 'Убрать учеников с группы\n\n Группа: \nId: '+ group.Id + '\nИмя: '+group.name+'\nПреподаватель: '+group.teacher+'\nВремя: ' + group.time + '\nДни: '+ group.days+ '\n\n';
+							var sts = deleteStudents.join('\n');
+							text += 'Список Учеников:\n' + sts;
+							queueBot.request((retry) => bot.telegram.sendMessage(process.env.OPERATOR_GROUP_CHATID,text,botUtils.buildUrlButtonOne('Ссылка на группу',url))
+							.catch(error => {
+								console.log(error);
+								if (error.response.status === 429) { // We've got 429 - too many requests
+										return retry(error.response.data.parameters.retry_after) // usually 300 seconds
+								}
+								throw error; // throw error further
+							}),process.env.OPERATOR_GROUP_CHATID,'telegramGroup');
+						}
+						await sleep(1000);
+						if(addStudents.length > 0){
+							var url = `https://${process.env.DOMAIN}.t8s.ru/Learner/Group/${group.Id}`;
+							var text = '';
+							text = 'Дата урока: ' + group.date+'\n\n';
+							text += 'Найти и добавить учеников в группу\n\n Группа:\nId: '+ group.Id + '\nИмя: '+ group.name+'\nПреподаватель: '+group.teacher+'\nВремя: ' + group.time + '\nДни: '+ group.days+ '\n\n';
+							var sts = addStudents.join('\n');
+							text += 'Список Учеников:\n' + sts;
+							queueBot.request((retry) => bot.telegram.sendMessage(process.env.OPERATOR_GROUP_CHATID,text,botUtils.buildUrlButtonOne('Ссылка на группу',url))
+							.catch(error => {
+								console.log(error);
+								if (error.response.status === 429) { // We've got 429 - too many requests
+									return retry(error.response.data.parameters.retry_after) // usually 300 seconds
+								}
+								throw error; // throw error further
+							}),process.env.OPERATOR_GROUP_CHATID,'telegramGroup');
+						}
 					}catch(err){
 						console.log(err);
 						resolve(true);
@@ -1029,7 +1059,6 @@ router.post('/addstudentexample', (req, res) => {
     });
 });
 
-
 //add offices from hh
 router.post('/addofficeexample', (req, res) => {
 	api.get(key.domain,'GetOffices','take=7000',key.apikey)
@@ -1099,7 +1128,6 @@ router.post('/addroomexample', (req, res) => {
 	res.send('ok');
 });
 
-
 //add topics 
 router.post('/addtopicsexample',(req,res) => {
 	try{
@@ -1156,8 +1184,6 @@ router.post('/addtopicsexample',(req,res) => {
 		console.log(err);
 	}
 });
-
-
 
 router.post('/addteacherexample', (req, res) => {
    api.get(key.domain,'GetTeachers','take=7000',key.apikey)
@@ -1894,6 +1920,105 @@ router.get('/gettablecolumns', async (req,res) => {
 			type: QueryTypes.SELECT
 		}); 
 		res.send({status: 200, data: {headers:headers, items: items}});
+	}catch(err){
+		console.log(err);
+	}
+});
+
+router.post('/cronatt', async (req,res) => {
+	try{
+		var date = '2021-04-06';
+		var params = `dateFrom=${date}&dateTo=${date}&TestTypeCategoryName=Attendance list&TestTypeName=${encodeURIComponent('Домашнее задание')}&take=7000`;
+		var response = await api.get(key.domain,'GetEdUnitTestResults',params,key.apikey);
+		res.send(response);
+	}catch(err){
+		console.log(err);
+	}
+});
+
+
+router.post('/telegramtohh', async(req,res) => {
+	try{
+		var date = new Date(req.body.date);
+		var registers = await Registers.findAll({
+			fields:['Id','TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator'],
+			where:{
+				LessonDate: date,
+				IsStudentAdd: true
+			}
+		});
+		console.log(registers);
+
+		var n = registers.length;
+		var i = 0;
+		await registers.reduce(async function(previousPromise,register){
+			await previousPromise;
+			return new Promise(async function(resolve,reject){
+				try{
+					i++;
+					await sleep(100);
+					console.log(i + ' из ' + n);
+					var subregisters = await SubRegisters.findAll({
+						fields:['Id','ClientId','FullName','Pass','Homework','Test','Lesson','Comment','Status'],
+						where:{
+							RegisterId: register.Id,
+							Status: true
+						}
+					});
+					if(subregisters.length > 0){
+						await subregisters.reduce(async function(previousStudentPromise,student){
+							await previousStudentPromise;							
+							return new Promise(async function(resolve,reject){
+								try{
+									var data = new Object();
+									data.edUnitId = register.GroupId;
+									data.studentClientId = student.ClientId;
+									data.date = register.LessonDate;
+									data.testTypeId = process.env.TEST_TYPE_ID;
+									var skills = new Array();
+									var skill = new Object();
+									skill.skillId = process.env.SCORE_TEACHER_SKILL_ID; // Оценка учителя
+									skill.score = student.Homework;
+									skills.push(skill);
+									skill = new Object();
+									skill.skillId = process.env.TEST_SKILL_ID; // Срез
+									skill.score = student.Test;
+									skills.push(skill);
+									skill = new Object();
+									skill.skillId = process.env.RANG_SKILL_ID; // Ранг
+									skill.score = student.Lesson;
+									skills.push(skill);
+									data.skills = skills;
+									data.commentHtml = student.Comment;
+									var res = await api.post(key.domain,'AddEditEdUnitTestResult',data,key.apikey);
+				
+									if(res.status == 200){
+										await student.update({
+											Status: false
+										});
+										resolve(true);
+									}else{
+										resolve(true);
+									}									
+								}catch(err){
+									await sleep(100);
+									sendTelegramIND(register,student);
+									resolve(true);
+								}
+							});
+						},Promise.resolve(true));
+						resolve(true);
+					} else {
+						resolve(true);
+					}
+				}catch(err){
+					console.log(err);
+					resolve(true);
+				}
+			});
+		},Promise.resolve(true));
+
+		res.send('ok');
 	}catch(err){
 		console.log(err);
 	}
