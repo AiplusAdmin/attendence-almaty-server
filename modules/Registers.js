@@ -72,6 +72,10 @@ const Registers = sequelize.define('Registers',{
 	},
 	HomeWorkComment: {
 		type: Sequelize.TEXT
+	},
+	Online: {
+		type: Sequelize.BOOLEAN,
+		default: true
 	}
 });
 

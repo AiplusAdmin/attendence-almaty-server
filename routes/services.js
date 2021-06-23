@@ -9,6 +9,7 @@ const bcrypt = require('bcrypt');
 const uniqueRandom = require('unique-random');
 const QueueBot = require('smart-request-balancer');
 const xlsx = require('xlsx');
+const HashMap = require('hashmap');
 
 const verifyToken = require('../scripts/verifyToken');
 const generateKey = require('../scripts/generateKeys');
@@ -32,6 +33,7 @@ const botUtils = require('../bot/botUtils');
 const verifyPassword = require('../scripts/verifyPassword');
 const hh = require('../scripts/hh');
 const support = require('../scripts/support');
+const { resolve, reject } = require('bluebird');
 //const aiplusOnlineBot = require('../scripts/aiplusOnlineBotFunctions');
 
 const key = {
@@ -155,7 +157,6 @@ router.get('/offices',verifyToken, (req, res) => {
 
 //Get Teachers
 router.post('/teacher',verifyToken,(req, res) => {
-	console.log(req.body);
 	var params = 'id='+req.body.teacherId;
     api.get(key.domain,'GetTeachers',params,key.apikey)
         .then((response) => {
@@ -175,21 +176,32 @@ router.post('/login', async (req, res) => {
 	passport.authenticate('local',(err,user,info) => {
 		if(err)
 			res.send({status: 400,message: 'Error'});
-		else if(user){
+		
+		if(user){
 			var exipersIn = '';
-			if (remember)
+			var exp = '';
+			if (remember){
 				exipersIn = "30 days";
-			else 
-				exipersIn = "12h";
+				var now = new Date();
+				now.setDate(now.getDate() + 30);
+				exp = now.getTime();
+			}else{
+				exipersIn = "2 days";
+				var now = new Date();
+				now.setDate(now.getDate() + 2);
+				exp = now.getTime();
+			} 
+				
 			const token = jwt.sign({_id: user.teacherId}, process.env.SECRET_KEY,{expiresIn: exipersIn});
+			
 			res.header('Authorization',token);
-			console.log(user);
 			res.json({
 				status: 200, 
 				data: {
 					teacherId: user.teacherId,
 					roleId: user.roleId, 
 					accesstoken: token,
+					exp: exp,
 					firstname: user.firstname,
 					lastname: user.lastname
 				}
@@ -328,8 +340,6 @@ router.post('/groupstudents',verifyToken, (req, res) => {
 			data: []
 		});
 	} else {
-		
-		console.log(req.body);
 		var params = 'edUnitId=' + req.body.group.Id;
 		api.get(key.domain,'GetEdUnitStudents',params,key.apikey)
 			.then(async (response) => {
@@ -685,7 +695,6 @@ router.post('/setattendence', async (req, res) => {
 				new Promise(async (resolve) => {
 					try{
 						await hh(LessonDate,GroupId,students,newRegister);
-						console.log('закончил');
 						resolve(true);
 					}catch(err){
 						console.log(err);
@@ -914,10 +923,8 @@ router.post('/addtogroup', (req, res) => {
     params.begin = req.body.group.date;
     params.weekdays = req.body.group.weekdays;
 	params.status = 'Normal';
-	console.log(params);
     api.post(key.domain,'AddEdUnitStudent',params,key.apikey)
     .then((response) => {
-		console.log('res',response);
 		res.json(response);
     })
     .catch(err =>{
@@ -1047,9 +1054,6 @@ router.post('/addstudentexample', (req, res) => {
 					},{
 						fields: ['Class','StudentId','ClientId','FirstName','LastName','MiddleName']
 					});
-					console.log(newStudent);
-				} else {
-					console.log('Есть');
 				}
 			}catch(error){
 				console.log(error);
@@ -1072,7 +1076,6 @@ router.post('/addofficeexample', (req, res) => {
 					}
 				});
 				if(school === null){
-					console.log('Record',record);
 					var newSchool = await Schools.create({
 						Name: record.Name,
 						Address: record.Address,
@@ -1080,9 +1083,6 @@ router.post('/addofficeexample', (req, res) => {
 					},{
 						fields: ['Name','Address','SchoolId']
 					});
-					console.log('Добавили');
-				} else {
-					console.log('Есть');
 				}
 			}catch(error){
 				console.log(error);
@@ -1102,7 +1102,6 @@ router.post('/addroomexample', (req, res) => {
 	data.map(async function(record){
 		try{
 			record['Кабинеты'] = String(record['Кабинеты']);
-			console.log(record);
 			var room = await Rooms.findOne({
 				attributes: ['Id','SchoolId','Room'],
 				where:{
@@ -1117,10 +1116,7 @@ router.post('/addroomexample', (req, res) => {
 				},{
 					fields: ['SchoolId','Room'],
 				});
-				console.log('Добавили');
-			} else {
-				console.log('Есть');
-			}
+			} 
 		}catch(error){
 			console.log(error);
 		}
@@ -1131,13 +1127,10 @@ router.post('/addroomexample', (req, res) => {
 //add topics 
 router.post('/addtopicsexample',(req,res) => {
 	try{
-		console.log('hey');
-
 		var workbook = xlsx.readFile(path.join(__dirname,'../xlsx.xlsx'),{cellDates: true});
 		var sheetName = workbook.SheetNames[0];
 		var worksheet = workbook.Sheets[sheetName];
 		var data = xlsx.utils.sheet_to_json(worksheet);
-		console.log(data);
 		data.map(async function(record){
 			try{
 				var Class = record['Класс'].toString();
@@ -1146,7 +1139,6 @@ router.post('/addtopicsexample',(req,res) => {
 				var Branch = record['Отделение'].trim();
 				var LevelId = record['Уровень'] ? record['Уровень']:null;
 				var Priority = record['Счет'];
-				console.log(record);
 				var topic = await Topics.findOne({
 					attributes: ['Id','Class','Name','SubjectId','Branch','LevelId'],
 					where:{
@@ -1168,7 +1160,6 @@ router.post('/addtopicsexample',(req,res) => {
 					},{
 						fields: ['Class','Name','SubjectId','Branch','LevelId','Priority'],
 					});
-					console.log('Добавили');
 				} else {
 					topic.update({
 						Priority: Priority,
@@ -1229,9 +1220,7 @@ router.post('/addteacherexample', (req, res) => {
 										}
 									}
 								}
-							} else {
-								console.log('Есть');
-							}	
+							}
 						}catch(err){
 							console.log(err);
 						}
@@ -1277,7 +1266,6 @@ router.post('/registeramount',verifyToken,async (req,res) => {
 
 router.post('/sendmail',verifyToken, async(req,res) => {
 	try{
-		console.log(req);
 		var teacher = await Teachers.findAll({
 			attributes: ['Email'],
 			where:{
@@ -1294,7 +1282,6 @@ router.post('/sendmail',verifyToken, async(req,res) => {
 				subject : 'Замена преподавателя',
 				text: 'Никому не говорите : ' + code
 			}
-			console.log(mailOptions);
 			sendMail(mailOptions);
 			
 			res.json({status: 200, data: code});
@@ -1405,7 +1392,7 @@ router.get('/searchstudent',verifyToken, async (req, res) => {
 				res.send({status: 200, data: students});
 			} else if(arr.length  == 1){
 				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
-				FROM "Students" WHERE "LastName" like :lastname or "FirstName" like :lastname AND ("Class" = :class1 OR "Class" = :class2) LIMIT 10;`;
+				FROM "Students" WHERE ("LastName" like :lastname or "FirstName" like :lastname) AND ("Class" = :class1 OR "Class" = :class2) LIMIT 10;`;
 				students = await sequelize.query(query,{
 					replacements:{lastname: lastname,class1:kl[0],class2:kl[1]},
 					type: QueryTypes.SELECT
@@ -1421,7 +1408,7 @@ router.get('/searchstudent',verifyToken, async (req, res) => {
 				res.send({status: 200, data: students});
 			}else {
 				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
-				FROM "Students" WHERE "LastName" like :lastname AND "FirstName" like :firstname AND "MiddleName" like :middlename AND ("Class" = :class1 OR "Class" = :class2) LIMIT 10;`;
+				FROM "Students" WHERE ("LastName" like :lastname AND "FirstName" like :firstname AND "MiddleName" like :middlename) AND ("Class" = :class1 OR "Class" = :class2) LIMIT 10;`;
 				students = await sequelize.query(query,{
 					replacements:{firstname: firstname,lastname:lastname,middlename:middlename,class1:kl[0],class2:kl[1]},
 					type: QueryTypes.SELECT
@@ -1431,40 +1418,37 @@ router.get('/searchstudent',verifyToken, async (req, res) => {
 		}else {
 			if(arr.length == 0){
 				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
-				FROM "Students" LIMIT 10;`;
+				FROM "Students" WHERE ("Class" = :class) LIMIT 10;`;
 				students = await sequelize.query(query,{
+					replacements:{class:kl[0]},
 					type: QueryTypes.SELECT
 				});
-				console.log(students);
 				res.send({status: 200, data: students});
 			} else if(arr.length  == 1){
 				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
-				FROM "Students" WHERE LOWER("LastName") like :lastname OR LOWER("FirstName") like :lastname LIMIT 10;`;
+				FROM "Students" WHERE (LOWER("LastName") like :lastname OR LOWER("FirstName") like :lastname) AND ("Class" = :class) LIMIT 10;`;
 				students = await sequelize.query(query,{
-					replacements:{lastname: lastname},
+					replacements:{lastname: lastname,class:kl[0]},
 					type: QueryTypes.SELECT
 				});
-				console.log(students);
 
 				res.send({status: 200, data: students});
 			} else if(arr.length == 2){
 				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
-				FROM "Students" WHERE ((LOWER("LastName") like :lastname AND LOWER("FirstName") like :firstname) OR (LOWER("LastName") like :firstname AND LOWER("FirstName") like :lastname)) LIMIT 10;`;
+				FROM "Students" WHERE ((LOWER("LastName") like :lastname AND LOWER("FirstName") like :firstname) OR (LOWER("LastName") like :firstname AND LOWER("FirstName") like :lastname)) AND ("Class" = :class) LIMIT 10;`;
 				students = await sequelize.query(query,{
-					replacements:{firstname: firstname,lastname:lastname},
+					replacements:{firstname: firstname,lastname:lastname,class:kl[0]},
 					type: QueryTypes.SELECT
 				});
-				console.log(students);
 
 				res.send({status: 200, data: students});
 			}else {
 				query = `SELECT "ClientId",TRIM("LastName" || ' ' || "FirstName" || ' ' || "MiddleName") as "FullName"
-				FROM "Students" WHERE  "LastName" like :lastname AND "FirstName" like :firstname AND "MiddleName" like :middlename AND ("Class" = :class) LIMIT 10;`;
+				FROM "Students" WHERE  ("LastName" like :lastname AND "FirstName" like :firstname AND "MiddleName" like :middlename) AND ("Class" = :class) LIMIT 10;`;
 				students = await sequelize.query(query,{
 					replacements:{firstname: firstname,lastname:lastname,middlename:middlename,class:kl[0]},
 					type: QueryTypes.SELECT
 				});
-				console.log(students);
 
 				res.send({status: 200, data: students});
 			}
@@ -1602,7 +1586,7 @@ router.get('/getdayregisters',async(req,res) => {
 		var dateFrom = new Date(req.query.dateFrom);
 		var dateTo = new Date(req.query.dateTo);
 		const query = `SELECT reg."Id", reg."GroupName", reg."Time", reg."LessonDate", reg."WeekDays",
-		reg."SubmitDay", reg."SubmitTime",reg."LevelTest",rom."Room",reg."Aibucks",top."Name" as "Topic",
+		reg."SubmitDay", reg."SubmitTime",reg."LevelTest",rom."Room",reg."Aibucks",reg."Online",top."Name" as "Topic",
 		CASE 
 			WHEN reg."GroupName" like '%RO%' THEN 'RO'
 			WHEN reg."GroupName" like '%KO%' THEN 'KO'
@@ -1669,9 +1653,7 @@ router.get('/lastlessonroom',async (req,res) => {
 			replacements:{groupId: groupId},
 			type: QueryTypes.SELECT
 		});
-		console.log(room);
 		if(room.length > 0){
-			console.log(room);
 			var obj = {};
 			var lastroom = {};
 			lastroom.Id = room[0].Id;
@@ -1680,18 +1662,15 @@ router.get('/lastlessonroom',async (req,res) => {
 			obj.level = room[0].LevelTest;
 			res.send({status: 200, data: obj});	
 		}else{
-			console.log('hey');
 			res.send({status: 404, data: null});
 		}
 	}catch(error){
-		console.log(error);
         res.send({status: 500,data: null});
 	}
 });
 
 router.get('/gettestsubjects',async (req,res) => {
 	try{
-		console.log(req.query);
 		var testId = req.query.testId;
 
 		const query = `SELECT tsb."Id",sb."Name", tsb."MaxScore"
@@ -1706,7 +1685,6 @@ router.get('/gettestsubjects',async (req,res) => {
 		if(testsubjects.length > 0){
 			res.send({status: 200, data: testsubjects});	
 		}else{
-			console.log('hey');
 			res.send({status: 404, data: null});
 		}
 	}catch(error){
@@ -1783,7 +1761,6 @@ router.post('/setpersonaltests',async (req,res)=>{
 
 router.get('/gettopics',async (req,res) => {
 	try{
-		console.log(req.query);
 		var Class = req.query.klass;
 		var Branch = req.query.branch;
 		var LevelId = req.query.level ? req.query.level:null;
@@ -1884,7 +1861,6 @@ router.get('/getpersonaltestteacher', async (req,res) => {
 				
 			}
 		});
-		console.log(items);
 		res.send({status: 200, data: {headers: headers,items: items}});
 	}catch(err){
 		console.log(err);
@@ -1947,7 +1923,6 @@ router.post('/telegramtohh', async(req,res) => {
 				IsStudentAdd: true
 			}
 		});
-		console.log(registers);
 
 		var n = registers.length;
 		var i = 0;
@@ -1957,7 +1932,6 @@ router.post('/telegramtohh', async(req,res) => {
 				try{
 					i++;
 					await sleep(100);
-					console.log(i + ' из ' + n);
 					var subregisters = await SubRegisters.findAll({
 						fields:['Id','ClientId','FullName','Pass','Homework','Test','Lesson','Comment','Status'],
 						where:{
@@ -2019,6 +1993,346 @@ router.post('/telegramtohh', async(req,res) => {
 		},Promise.resolve(true));
 
 		res.send('ok');
+	}catch(err){
+		console.log(err);
+	}
+});
+
+router.post('/hhtoonline', async(req,res) => {
+	try{
+		var date = req.body.date;
+
+		var hashmap = new HashMap();
+		var params = `dateFrom=${date}&dateTo=${date}&TestTypeCategoryName=Attendance list&TestTypeName=${encodeURIComponent('Домашнее задание')}&take=7000`;
+		var EdUnitTestResults = await api.get(key.domain,'GetEdUnitTestResults',params,key.apikey);
+		var attendances = EdUnitTestResults.data;
+
+		attendances.map(function(attendance){
+			if(hashmap.has(attendance.EdUnitId)){
+				var group = hashmap.get(attendance.EdUnitId);
+
+				if(!group.students.has(attendance.StudentClientId)){
+					var obj = {};
+					obj.StudentName = attendance.StudentName;
+					obj.Skills = attendance.Skills;
+					obj.com = attendance.CommentText ? attendance.CommentText : '';
+					
+					group.students.set(attendance.StudentClientId,obj);
+					hashmap.set(attendance.EdUnitId,group);
+				}
+			}else{
+				var map = new HashMap();
+				var obj = {};
+				obj.StudentName = attendance.StudentName;
+				obj.Skills = attendance.Skills;
+				obj.com = attendance.CommentText ? attendance.CommentText : '';
+				map.set(attendance.StudentClientId,obj);
+
+				var group = {};
+				group.EdUnitId = attendance.EdUnitId;
+				group.EdUnitName = attendance.EdUnitName;
+				group.students = map;
+				
+				hashmap.set(attendance.EdUnitId,group);
+			}
+		});
+
+		var groups = hashmap.keys();
+		
+		var check = new Date(date);
+		var yesterday = new Date();
+		
+		yesterday.setDate(check.getDate()-1);
+		yesterday = new Date(yesterday.toISOString().substr(0,10));
+
+		await groups.reduce(async function(previousPromise,id){
+			await previousPromise;
+			return new Promise(async function(resolve,reject){
+				await sleep(100);
+				try{
+					
+					var param = `id=${id}`;
+					var EdUnits = await api.get(key.domain,'GetEdUnits',param,key.apikey);
+	
+					var group = EdUnits.data;
+					
+					var obj = hashmap.get(id);
+
+					
+					obj.OfficeOrCompanyId = group[0].OfficeOrCompanyId;
+
+					if(group[0].ScheduleItems.length == 1){
+						obj.mainTeacherId = group[0].ScheduleItems[0].TeacherIds[0];
+						obj.Time = group[0].ScheduleItems[0].BeginTime + '-' + group[0].ScheduleItems[0].EndTime;
+						obj.Weekdays = Weekdays(group[0].ScheduleItems[0].Weekdays);
+					}else {
+						group[0].ScheduleItems.map(function(ScheduleItem){
+							if(ScheduleItem.EndDate){
+								var from = new Date(ScheduleItem.BeginDate);
+								var to = new Date(ScheduleItem.EndDate);
+								if( check > from && check < to && !obj.mainTeacherId){
+									obj.mainTeacherId = ScheduleItem.TeacherIds[0];
+									obj.Time = ScheduleItem.BeginTime + '-' + ScheduleItem.EndTime;
+									obj.Weekdays = Weekdays(ScheduleItem.Weekdays);
+								} 
+								if( check.getTime() === from.getTime() && !obj.mainTeacherId){
+									obj.mainTeacherId = ScheduleItem.TeacherIds[0];
+									obj.Time = ScheduleItem.BeginTime + '-' + ScheduleItem.EndTime;	
+									obj.Weekdays = Weekdays(ScheduleItem.Weekdays);
+								} 
+								if( check.getTime() === to.getTime() && !obj.mainTeacherId){
+									obj.mainTeacherId = ScheduleItem.TeacherIds[0];
+									obj.Time = ScheduleItem.BeginTime + '-' + ScheduleItem.EndTime;
+									obj.Weekdays = Weekdays(ScheduleItem.Weekdays);
+								} 
+							}
+						});
+
+						group[0].ScheduleItems.map(function(ScheduleItem){
+							if(!ScheduleItem.EndDate  && !obj.mainTeacherId ){
+								obj.mainTeacherId = ScheduleItem.TeacherIds[0];
+								obj.Time = ScheduleItem.BeginTime + '-' + ScheduleItem.EndTime;
+								obj.Weekdays = Weekdays(ScheduleItem.Weekdays);
+							}
+						});
+					
+						group[0].ScheduleItems.map(function(ScheduleItem){
+							if(ScheduleItem.EndDate){
+								var from = new Date(ScheduleItem.BeginDate);
+								var to = new Date(ScheduleItem.EndDate);
+								
+								
+								if(check.getTime() === to.getTime() && check.getTime() === from.getTime()){
+									obj.change = true;
+									obj.subTeacherId = ScheduleItem.TeacherIds[0];
+								}
+
+								if(yesterday.getTime() === to.getTime() && !obj.mainTeacherId){
+									obj.mainTeacherId = ScheduleItem.TeacherIds[0];
+									obj.Time = ScheduleItem.BeginTime + '-' + ScheduleItem.EndTime;	
+									obj.Weekdays = Weekdays(ScheduleItem.Weekdays);
+								} 
+							}
+						});
+					}
+					
+					hashmap.set(id,obj);
+					resolve(true);
+				}catch(err){
+					console.log(err);
+				}
+			});
+		},Promise.resolve(true));
+
+		groups = hashmap.keys();
+
+		var i = 0;
+		var responses = [];
+	
+		await groups.reduce(async function(previousPromise ,id){
+			await previousPromise;
+			return new Promise(async function(resolve, reject){
+				try{
+					var obj = hashmap.get(id);
+					if(obj.mainTeacherId){
+						if(!obj.subTeacherId){
+							var register = await Registers.findOne({
+								attributes:['Id','GroupName','Time','LessonDate','WeekDays'],
+								where:{
+									[Op.and]:[
+										{TeacherId: obj.mainTeacherId},
+										{GroupId: obj.EdUnitId},
+										{LessonDate:check}				
+									]
+								}
+							});
+							
+							if(register === null){
+								var Change = false;
+								var LevelTest = 'Нет';
+								var SubTeacherId = null;
+								var TeacherId = obj.mainTeacherId;
+								var GroupId = obj.EdUnitId;
+								var GroupName = obj.EdUnitName;
+								var Time = obj.Time;
+								var LessonDate = date;
+								var WeekDays = obj.Weekdays;
+								var SubmitDay = new Date().toISOString().substr(0,10);
+								var SubmitTime = '00:00:00';
+								var IsSubmitted = true;
+								var IsStudentAdd = false;
+								var IsOperator = false;
+								var SchoolId = obj.OfficeOrCompanyId;
+								var Aibucks = 0;
+								var TopicId = null;
+								var RoomId = null;
+								var Online = false;
+								register = await Registers.create({
+									Change,
+									LevelTest,
+									RoomId,
+									SubTeacherId,
+									TeacherId,
+									GroupId,
+									GroupName,
+									Time,
+									LessonDate,
+									WeekDays,
+									SubmitDay,
+									SubmitTime,
+									IsSubmitted,
+									IsStudentAdd,
+									IsOperator,
+									SchoolId,
+									Aibucks,
+									TopicId,
+									Online
+								},{
+									fields:['Change','LevelTest','RoomId','SubTeacherId','TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator','SchoolId','Aibucks','TopicId','Online']
+								});
+
+								if(register){
+									var subregisters = [];
+
+									var students = obj.students;
+									var keys = students.keys();
+									
+									keys.map(function(studid){
+										var student = students.get(studid);
+										var subreg = {};
+										subreg.ClientId = studid;
+										subreg.FullName = student.StudentName;
+										subreg.RegisterId = register.Id;
+										subreg.Pass = true;
+										subreg.Status = false;
+										subreg.isWatched = false;
+										subreg.Aibucks = 0;
+										student.Skills.map(function(skill){
+											if(skill.SkillName == 'Срез'){
+												subreg.Test = skill.Score;
+											}else if(skill.SkillName == 'Оценка учителя'){
+												subreg.Homework = skill.Score;
+											}else if(skill.SkillName == 'Ранг'){
+												subreg.Lesson = skill.Score;
+											}
+										});
+
+										subregisters.push(subreg);
+									});
+
+									var result = await SubRegisters.bulkCreate(subregisters,{
+										fields:['RegisterId','ClientId','FullName','Pass','Homework','Test','Lesson','Comment','Status','isWatched','Aibucks']
+									});
+								}
+							}
+						} else {
+							var register = await Registers.findOne({
+								attributes:['Id','GroupName','Time','LessonDate','WeekDays'],
+								where:{
+									[Op.and]:[
+										{
+											[Op.or]:[
+												{TeacherId: obj.subTeacherId},
+												{TeacherId: obj.mainTeacherId},
+											]
+										},
+										{GroupId: obj.EdUnitId},
+										{LessonDate:check}				
+									]
+								}
+							});
+							
+							if(register === null){
+								var Change = false;
+								var LevelTest = 'Нет';
+								var SubTeacherId = obj.mainTeacherId;;
+								var TeacherId = obj.subTeacherId;
+								var GroupId = obj.EdUnitId;
+								var GroupName = obj.EdUnitName;
+								var Time = obj.Time;
+								var LessonDate = date;
+								var WeekDays = obj.Weekdays;
+								var SubmitDay = new Date().toISOString().substr(0,10);
+								var SubmitTime = '00:00:00';
+								var IsSubmitted = true;
+								var IsStudentAdd = false;
+								var IsOperator = false;
+								var SchoolId = obj.OfficeOrCompanyId;
+								var Aibucks = 0;
+								var TopicId = null;
+								var RoomId = null;
+								var Online = false;
+								register = await Registers.create({
+									Change,
+									LevelTest,
+									RoomId,
+									SubTeacherId,
+									TeacherId,
+									GroupId,
+									GroupName,
+									Time,
+									LessonDate,
+									WeekDays,
+									SubmitDay,
+									SubmitTime,
+									IsSubmitted,
+									IsStudentAdd,
+									IsOperator,
+									SchoolId,
+									Aibucks,
+									TopicId,
+									Online
+								},{
+									fields:['Change','LevelTest','RoomId','SubTeacherId','TeacherId','GroupId','GroupName','Time','LessonDate','WeekDays','SubmitDay','SubmitTime','IsSubmitted','IsStudentAdd','IsOperator','SchoolId','Aibucks','TopicId','Online']
+								});
+
+								if(register){
+									var subregisters = [];
+
+									var students = obj.students;
+									var keys = students.keys();
+									
+									keys.map(function(studid){
+										var student = students.get(studid);
+										var subreg = {};
+										subreg.ClientId = studid;
+										subreg.FullName = student.StudentName;
+										subreg.RegisterId = register.Id;
+										subreg.Pass = true;
+										subreg.Status = false;
+										subreg.isWatched = false;
+										subreg.Aibucks = 0;
+										student.Skills.map(function(skill){
+											if(skill.SkillName == 'Срез'){
+												subreg.Test = skill.Score;
+											}else if(skill.SkillName == 'Оценка учителя'){
+												subreg.Homework = skill.Score;
+											}else if(skill.SkillName == 'Ранг'){
+												subreg.Lesson = skill.Score;
+											}
+										});
+
+										subregisters.push(subreg);
+									});
+
+									var result = await SubRegisters.bulkCreate(subregisters,{
+										fields:['RegisterId','ClientId','FullName','Pass','Homework','Test','Lesson','Comment','Status','isWatched','Aibucks']
+									});
+								}
+							}
+						}
+					}else{
+						responses.push(obj);
+						i++;
+					}
+					resolve(true);
+				}catch(err){
+					console.log(err);
+				}
+			});	
+		},Promise.resolve(true));
+
+		res.send({status: "OK", data: responses});
 	}catch(err){
 		console.log(err);
 	}

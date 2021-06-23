@@ -28,7 +28,6 @@ async function GetTeacher(email){
 function initialize(passport){
 	const authenticateUser = async (username, password, done) => {
 		try{
-			console.log(username);
 			var row = await GetTeacher(username);
 			if(row){
 				if(!await verifyPassword(password,row.Password))
